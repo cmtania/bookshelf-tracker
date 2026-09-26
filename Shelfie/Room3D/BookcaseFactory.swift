@@ -11,11 +11,11 @@ enum BookcaseFactory {
         let books: [UUID: Entity]
     }
 
-    static func makeFrame(_ g: BookcaseGeometry, paintHex: String) -> Entity {
+    static func makeFrame(_ g: BookcaseGeometry, paint preset: RoomTheme.Preset) -> Entity {
         let frame = Entity()
         frame.name = "bookcase"
-        let paintColor = UIColor(hex: paintHex)
-        let paint = RoomFactory.material(color: paintColor, roughness: 0.7)
+        let paintColor = UIColor(hex: preset.hex)
+        let paint = RoomFactory.material(color: paintColor, finish: preset.finish)
         // The back panel sits in shadow, so it's a touch darker than the frame.
         let backPaint = RoomFactory.material(color: paintColor.adjustingBrightness(by: 0.93), roughness: 0.85)
 
@@ -81,10 +81,15 @@ enum BookcaseFactory {
         return CompartmentBuild(entity: entity, books: books)
     }
 
-    /// Label on the front of the shelf board under the compartment.
+    /// Label size, shared with the share image. Big enough to read from the overview.
+    nonisolated static let plateWidth: Float = 0.30
+    nonisolated static let plateHeight: Float = 0.065
+
+    /// Label on the front of the shelf board under the compartment. Its top lines up with the
+    /// top of the board and it hangs down, so it never covers the books standing on the board.
     private static func makePlate(_ compartment: CompartmentSnapshot, hiddenCount: Int, geometry g: BookcaseGeometry) -> Entity {
-        let width: Float = 0.2
-        let height: Float = 0.038
+        let width = plateWidth
+        let height = plateHeight
         let text: String
         if let name = compartment.name {
             text = hiddenCount > 0 ? "\(name) · +\(hiddenCount)" : name
@@ -95,9 +100,9 @@ enum BookcaseFactory {
         if let texture = TextureFactory.plate(text: text, isPlaceholder: compartment.isEmpty, width: width, height: height) {
             material.baseColor = .init(tint: .white, texture: .init(texture))
         }
-        let plate = ModelEntity(mesh: .generatePlane(width: width, height: height, cornerRadius: 0.004), materials: [material])
+        let plate = ModelEntity(mesh: .generatePlane(width: width, height: height, cornerRadius: 0.008), materials: [material])
         plate.name = "plate:\(compartment.index)"
-        plate.position = [g.innerWidth / 2, -g.board / 2, g.localFrontZ + 0.002]
+        plate.position = [g.innerWidth / 2, -height / 2, g.localFrontZ + 0.002]
         plate.components.set(CollisionComponent(shapes: [.generateBox(width: width, height: height, depth: 0.004)]))
         plate.components.set(InputTargetComponent())
         return plate

@@ -20,22 +20,12 @@ struct SettingsScreen: View {
         NavigationStack {
             List {
                 unlockSection
-                Section("Appearance") {
-                    NavigationLink {
-                        RoomThemeEditor()
-                            .navigationTitle("Room colors")
-                    } label: {
-                        Label("Room colors", systemImage: "paintbrush.fill")
-                    }
-                }
+                appearanceSection
                 categoriesSection
                 remindersSection
                 aboutSection
             }
             .navigationTitle("Settings")
-            .toolbar {
-                EditButton()
-            }
             .sheet(item: $editingCategory) { category in
                 CategoryEditSheet(category: category)
             }
@@ -82,7 +72,7 @@ struct SettingsScreen: View {
                             Text("Unlock Shelfie")
                                 .font(.headline)
                                 .foregroundStyle(.primary)
-                            Text("Unlimited books · all 10 shelves · pay once")
+                            Text("Unlimited books · all 10 shelves · room colors · pay once")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
@@ -95,6 +85,31 @@ struct SettingsScreen: View {
                 }
                 Button("Restore purchase") {
                     Task { await gate.restore() }
+                }
+            }
+        }
+    }
+
+    /// Room colors are part of the one-time Unlock.
+    private var appearanceSection: some View {
+        Section("Appearance") {
+            if gate.isUnlocked {
+                NavigationLink {
+                    RoomThemeEditor()
+                        .navigationTitle("Room colors")
+                } label: {
+                    Label("Room colors", systemImage: "paintbrush.fill")
+                }
+            } else {
+                Button {
+                    showingPaywall = true
+                } label: {
+                    HStack {
+                        Label("Room colors", systemImage: "paintbrush.fill")
+                            .foregroundStyle(.primary)
+                        Spacer()
+                        ProBadge()
+                    }
                 }
             }
         }
@@ -133,7 +148,14 @@ struct SettingsScreen: View {
                 }
             }
         } header: {
-            Text("Categories")
+            HStack {
+                Text("Categories")
+                Spacer()
+                // Reorder / delete categories; lives on the section it edits.
+                EditButton()
+                    .font(.subheadline.weight(.semibold))
+                    .textCase(nil)
+            }
         } footer: {
             Text("Each category is one compartment of your bookcase, in this order from the top left (up to 10).")
         }
@@ -207,6 +229,19 @@ struct SettingsScreen: View {
             }
             await ReminderScheduler.reschedule(context: context)
         }
+    }
+}
+
+/// Small "PRO" tag for features included in the Unlock.
+struct ProBadge: View {
+    var body: some View {
+        Text("PRO")
+            .font(.caption2.weight(.bold))
+            .padding(.horizontal, 6)
+            .padding(.vertical, 2)
+            .foregroundStyle(.white)
+            .background(Capsule().fill(Color.accentColor))
+            .accessibilityLabel("Included with Unlock")
     }
 }
 

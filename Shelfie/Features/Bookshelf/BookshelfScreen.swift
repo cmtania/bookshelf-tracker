@@ -28,22 +28,24 @@ struct BookshelfScreen: View {
     @State private var sharing = false
     @State private var renamingCategory: BookCategory?
 
-    @AppStorage(Prefs.shelfColorKey) private var shelfHex = RoomTheme.default.shelfHex
-    @AppStorage(Prefs.wallColorKey) private var wallHex = RoomTheme.default.wallHex
-    @AppStorage(Prefs.floorColorKey) private var floorHex = RoomTheme.default.floorHex
+    @AppStorage(Prefs.shelfColorKey) private var shelfID = RoomTheme.default.shelfID
+    @AppStorage(Prefs.wallColorKey) private var wallID = RoomTheme.default.wallID
+    @AppStorage(Prefs.floorColorKey) private var floorID = RoomTheme.default.floorID
 
     private var snapshot: ShelfSnapshot {
         ShelfSnapshot.make(categories: categories, books: books)
     }
 
+    /// Room colors are part of the Unlock; without it (e.g. after a refund) the default room shows.
     private var theme: RoomTheme {
-        RoomTheme(shelfHex: shelfHex, wallHex: wallHex, floorHex: floorHex)
+        guard gate.isUnlocked else { return .default }
+        return RoomTheme(shelfID: shelfID, wallID: wallID, floorID: floorID)
     }
 
     /// Text over the room follows the wall colour, not the system appearance: a white room
     /// needs dark text even in Dark Mode, and a charcoal wall needs light text.
     private var overlayScheme: ColorScheme {
-        UIColor(hex: wallHex).luminance < 0.5 ? .dark : .light
+        UIColor(hex: theme.wall.hex).luminance < 0.5 ? .dark : .light
     }
 
     private var focusedCategory: BookCategory? {
@@ -147,7 +149,7 @@ struct BookshelfScreen: View {
     private func shareCard(_ snapshot: ShelfSnapshot) -> ShelfShareCard {
         ShelfShareCard(
             snapshot: snapshot,
-            shelfHex: shelfHex,
+            shelf: theme.shelf,
             bookCount: books.count,
             readingCount: books.filter { $0.status == .reading }.count,
             finishedCount: books.filter { $0.status == .finished }.count,
@@ -194,7 +196,11 @@ struct BookshelfScreen: View {
                 .accessibilityLabel("Rename \(category.name)")
             } else {
                 Button {
-                    editingTheme = true
+                    if gate.isUnlocked {
+                        editingTheme = true
+                    } else {
+                        showingPaywall = true
+                    }
                 } label: {
                     Image(systemName: "paintbrush.fill")
                         .font(.headline)

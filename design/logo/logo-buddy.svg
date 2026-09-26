@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="t">
+  <title id="t">Shelfie – book buddy</title>
+  <rect width="64" height="64" rx="14" fill="#E07A2E"/>
+  <!-- Streak flame on its head (drawn first so the book overlaps its base) -->
+  <path fill="#F6C453" d="M35 3C38.5 7 41 9.5 41 12.5C41 15.8 38.3 18 35 18C31.7 18 29 15.8 29 12.5C29 10.5 30.3 8.8 31.6 7.6C31.8 9.6 32.8 10.8 34 11C33.4 8.2 33.8 5.4 35 3Z"/>
+  <path fill="#C8435A" d="M35 8.5C36.8 10.5 38 12 38 13.8C38 15.6 36.6 16.8 35 16.8C33.4 16.8 32 15.6 32 13.8C32 12.5 32.8 11.4 33.6 10.6C33.8 11.8 34.3 12.4 35 12.6C34.6 11.2 34.6 9.8 35 8.5Z"/>
+  <!-- Feet -->
+  <rect x="24" y="51" width="7" height="6" rx="3" fill="#3B2A20"/>
+  <rect x="37" y="51" width="7" height="6" rx="3" fill="#3B2A20"/>
+  <!-- Book body: cream cover with a berry spine -->
+  <rect x="16" y="14" width="34" height="40" rx="6" fill="#FFF4E0"/>
+  <path fill="#C8435A" d="M22 14H24V54H22A6 6 0 0 1 16 48V20A6 6 0 0 1 22 14Z"/>
+  <!-- Face -->
+  <circle cx="31" cy="31" r="4.2" fill="#3B2A20"/>
+  <circle cx="42" cy="31" r="4.2" fill="#3B2A20"/>
+  <circle cx="32.4" cy="29.6" r="1.4" fill="#FFFFFF"/>
+  <circle cx="43.4" cy="29.6" r="1.4" fill="#FFFFFF"/>
+  <circle cx="27.5" cy="38" r="2.4" fill="#F4A3A3"/>
+  <circle cx="45.5" cy="38" r="2.4" fill="#F4A3A3"/>
+  <path d="M32.5 38.5Q36.5 42.5 40.5 38.5" fill="none" stroke="#3B2A20" stroke-width="2.2" stroke-linecap="round"/>
+</svg>

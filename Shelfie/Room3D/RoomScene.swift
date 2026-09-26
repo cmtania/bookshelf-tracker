@@ -100,7 +100,7 @@ final class RoomScene {
         roomEntity?.removeFromParent()
         frameEntity?.removeFromParent()
         let room = RoomFactory.makeRoom(theme: theme)
-        let frame = BookcaseFactory.makeFrame(geometry, paintHex: theme.shelfHex)
+        let frame = BookcaseFactory.makeFrame(geometry, paint: theme.shelf)
         root.addChild(room)
         root.addChild(frame)
         roomEntity = room

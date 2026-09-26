@@ -7,7 +7,7 @@ struct ShelfShareCard: View {
     static let size = CGSize(width: 360, height: 450)
 
     let snapshot: ShelfSnapshot
-    let shelfHex: String
+    let shelf: RoomTheme.Preset
     let bookCount: Int
     let readingCount: Int
     let finishedCount: Int
@@ -23,7 +23,7 @@ struct ShelfShareCard: View {
                     .foregroundStyle(Color(hex: "#6B645A"))
             }
 
-            BookcaseDrawing(snapshot: snapshot, shelfHex: shelfHex)
+            BookcaseDrawing(snapshot: snapshot, shelf: shelf)
                 .aspectRatio(CGFloat(BookcaseGeometry().width / BookcaseGeometry().height), contentMode: .fit)
                 .shadow(color: .black.opacity(0.22), radius: 14, y: 10)
                 .frame(maxHeight: .infinity)
@@ -66,7 +66,7 @@ struct ShelfShareCard: View {
 /// Front view of the bookcase: frame, shaded compartments, books, and category labels.
 private struct BookcaseDrawing: View {
     let snapshot: ShelfSnapshot
-    let shelfHex: String
+    let shelf: RoomTheme.Preset
 
     var body: some View {
         Canvas { context, size in
@@ -79,9 +79,22 @@ private struct BookcaseDrawing: View {
                 CGRect(x: x(left), y: y(bottom + height), width: CGFloat(width) * scale, height: CGFloat(height) * scale)
             }
 
-            let paint = UIColor(hex: shelfHex)
+            let paint = UIColor(hex: shelf.hex)
             // Frame.
-            context.fill(Path(roundedRect: rect(-g.width / 2, 0, g.width, g.height), cornerRadius: 2), with: .color(Color(uiColor: paint)))
+            let frameRect = rect(-g.width / 2, 0, g.width, g.height)
+            context.fill(Path(roundedRect: frameRect, cornerRadius: 2), with: .color(Color(uiColor: paint)))
+            if shelf.finish != .matte {
+                // Lacquer and metal get a diagonal sheen across the frame (compartments are drawn on top).
+                let strength = shelf.finish == .metallic ? 0.45 : 0.25
+                context.fill(
+                    Path(roundedRect: frameRect, cornerRadius: 2),
+                    with: .linearGradient(
+                        Gradient(colors: [.white.opacity(strength), .clear, .black.opacity(strength * 0.5), .white.opacity(strength * 0.6)]),
+                        startPoint: CGPoint(x: frameRect.minX, y: frameRect.minY),
+                        endPoint: CGPoint(x: frameRect.maxX, y: frameRect.maxY)
+                    )
+                )
+            }
             context.fill(Path(rect(-g.width / 2 + g.board, 0, g.width - 2 * g.board, g.plinth)), with: .color(Color(uiColor: paint.adjustingBrightness(by: 0.9))))
 
             for compartment in snapshot.compartments {
@@ -159,14 +172,15 @@ private struct BookcaseDrawing: View {
         in context: inout GraphicsContext,
         rect: (Float, Float, Float, Float) -> CGRect
     ) {
-        let width: Float = 0.26
-        let height: Float = 0.045
-        let plate = rect(origin.x + g.innerWidth / 2 - width / 2, origin.y - g.board / 2 - height / 2, width, height)
+        // Same size and position as the 3D label: top at the board's top, hanging down.
+        let width = BookcaseFactory.plateWidth
+        let height = BookcaseFactory.plateHeight
+        let plate = rect(origin.x + g.innerWidth / 2 - width / 2, origin.y - height, width, height)
         context.fill(Path(roundedRect: plate, cornerRadius: plate.height * 0.25), with: .color(.white))
         let label = hidden > 0 ? "\(name) · +\(hidden)" : name
         context.draw(
             Text(label)
-                .font(.system(size: plate.height * 0.55, weight: .semibold, design: .rounded))
+                .font(.system(size: plate.height * 0.58, weight: .bold, design: .rounded))
                 .foregroundStyle(Color(hex: "#2B2B2B")),
             in: plate.insetBy(dx: plate.height * 0.3, dy: 0)
         )

@@ -12,7 +12,7 @@ enum RoomFactory {
     static func makeRoom(theme: RoomTheme) -> Entity {
         let room = Entity()
         room.name = "room"
-        let wallColor = UIColor(hex: theme.wallHex)
+        let wallColor = UIColor(hex: theme.wall.hex)
         let wall = material(color: wallColor, roughness: 0.95)
         let halfWidth = roomWidth / 2
 
@@ -39,11 +39,7 @@ enum RoomFactory {
         ceiling.orientation = simd_quatf(angle: .pi, axis: [1, 0, 0])
         room.addChild(ceiling)
 
-        var floorMaterial = material(hex: theme.floorHex, roughness: 0.6)
-        if let wood = TextureFactory.woodFloor(baseHex: theme.floorHex) {
-            floorMaterial.baseColor = .init(tint: .white, texture: .init(wood))
-        }
-        let floor = ModelEntity(mesh: .generatePlane(width: roomWidth, depth: roomDepth), materials: [floorMaterial])
+        let floor = ModelEntity(mesh: .generatePlane(width: roomWidth, depth: roomDepth), materials: [floorMaterial(theme.floor)])
         floor.position = [0, 0, roomDepth / 2]
         room.addChild(floor)
 
@@ -76,6 +72,46 @@ enum RoomFactory {
         lights.addChild(fill)
 
         return lights
+    }
+
+    /// Textured floor; polished stone and tiles get a shinier surface than wood.
+    private static func floorMaterial(_ preset: RoomTheme.Preset) -> PhysicallyBasedMaterial {
+        var surface = material(hex: preset.hex, roughness: 0.6)
+        if let texture = TextureFactory.floor(pattern: preset.pattern, hex: preset.hex) {
+            surface.baseColor = .init(tint: .white, texture: .init(texture))
+        }
+        switch preset.pattern {
+        case .planks:
+            break
+        case .herringbone:
+            surface.roughness = .init(floatLiteral: 0.5)
+        case .marble:
+            surface.roughness = .init(floatLiteral: 0.18)
+            surface.clearcoat = .init(floatLiteral: 1)
+            surface.clearcoatRoughness = .init(floatLiteral: 0.05)
+        case .terrazzo:
+            surface.roughness = .init(floatLiteral: 0.35)
+        case .checker:
+            surface.roughness = .init(floatLiteral: 0.3)
+        }
+        return surface
+    }
+
+    /// Paint with a finish: matte, glossy lacquer (clear coat) or metal.
+    static func material(color: UIColor, finish: RoomTheme.Finish) -> PhysicallyBasedMaterial {
+        var paint = material(color: color, roughness: 0.7)
+        switch finish {
+        case .matte:
+            break
+        case .gloss:
+            paint.roughness = .init(floatLiteral: 0.3)
+            paint.clearcoat = .init(floatLiteral: 1)
+            paint.clearcoatRoughness = .init(floatLiteral: 0.08)
+        case .metallic:
+            paint.metallic = .init(floatLiteral: 0.9)
+            paint.roughness = .init(floatLiteral: 0.32)
+        }
+        return paint
     }
 
     static func material(hex: String, roughness: Float) -> PhysicallyBasedMaterial {

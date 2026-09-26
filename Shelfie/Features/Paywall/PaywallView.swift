@@ -18,12 +18,13 @@ struct PaywallView: View {
                     Text("Unlock your whole library")
                         .font(.title.bold())
                         .multilineTextAlignment(.center)
-                    Text("The free version holds \(UnlockGate.freeBookLimit) books in \(UnlockGate.freeCategoryLimit) categories. Unlock once to fill every shelf.")
+                    Text("The free version holds \(UnlockGate.freeBookLimit) books in \(UnlockGate.freeCategoryLimit) categories. Unlock once to fill every shelf and color your room.")
                         .multilineTextAlignment(.center)
                         .foregroundStyle(.secondary)
                     VStack(alignment: .leading, spacing: 14) {
                         feature("infinity", "Unlimited books")
                         feature("square.grid.2x2.fill", "All \(UnlockGate.maxCategories) bookcase compartments")
+                        feature("paintbrush.fill", "Room colors for your bookcase, walls and floor")
                         feature("checkmark.seal.fill", "One-time purchase, no subscription")
                         feature("heart.fill", "Supports an indie developer")
                     }

@@ -37,48 +37,29 @@ enum TextureFactory {
         return texture
     }
 
-    /// Wood planks around a base colour (light oak by default, like the reference room).
-    /// Deterministic, so the planks look the same every launch.
-    static func woodFloor(baseHex: String) -> TextureResource? {
-        let key = "wood|\(baseHex)"
+    /// Floor texture for the whole room floor. The image has the floor plane's 5 × 7 m
+    /// proportions at 200 px per metre, so tiles and planks aren't stretched.
+    static func floor(pattern: RoomTheme.FloorPattern, hex: String) -> TextureResource? {
+        let key = "floor|\(pattern.rawValue)|\(hex)"
         if let cached = cache[key] { return cached }
-        var baseRed: CGFloat = 0, baseGreen: CGFloat = 0, baseBlue: CGFloat = 0, baseAlpha: CGFloat = 0
-        UIColor(hex: baseHex).getRed(&baseRed, green: &baseGreen, blue: &baseBlue, alpha: &baseAlpha)
-        let pixels = 1024
-        let format = UIGraphicsImageRendererFormat()
-        format.scale = 1
-        format.opaque = true
-        let image = UIGraphicsImageRenderer(size: CGSize(width: pixels, height: pixels), format: format).image { context in
-            let cg = context.cgContext
-            var rng = SplitMix64(seed: 7)
-            let rows = 40
-            let rowHeight = CGFloat(pixels) / CGFloat(rows)
-            for row in 0..<rows {
-                let top = CGFloat(row) * rowHeight
-                var x = -CGFloat(Int.random(in: 0...180, using: &rng))
-                while x < CGFloat(pixels) {
-                    let length = CGFloat(Int.random(in: 150...260, using: &rng))
-                    // Each plank is a little lighter or darker than the base colour.
-                    let tone = 0.94 + CGFloat(Int.random(in: 0...120, using: &rng)) / 1000
-                    UIColor(red: min(1, baseRed * tone), green: min(1, baseGreen * tone), blue: min(1, baseBlue * tone), alpha: 1).setFill()
-                    cg.fill(CGRect(x: x, y: top, width: length, height: rowHeight))
-                    UIColor(white: 0, alpha: 0.05).setFill()
-                    for _ in 0..<3 {
-                        let grainY = top + CGFloat(Int.random(in: 2...Int(rowHeight) - 2, using: &rng))
-                        cg.fill(CGRect(x: x, y: grainY, width: length, height: 1))
-                    }
-                    UIColor(white: 0, alpha: 0.12).setFill()
-                    cg.fill(CGRect(x: x, y: top, width: 1.5, height: rowHeight))
-                    x += length
-                }
-                UIColor(white: 0, alpha: 0.10).setFill()
-                cg.fill(CGRect(x: 0, y: top, width: CGFloat(pixels), height: 1))
-            }
-        }
+        let ppm: CGFloat = 200
+        let size = CGSize(width: CGFloat(RoomFactory.roomWidth) * ppm, height: CGFloat(RoomFactory.roomDepth) * ppm)
+        let image = FloorPainter.image(pattern: pattern, hex: hex, size: size, pixelsPerMeter: ppm)
         guard let cgImage = image.cgImage else { return nil }
         let texture = try? TextureResource.generate(from: cgImage, options: .init(semantic: .color))
         cache[key] = texture
         return texture
+    }
+
+    private static var thumbnailCache: [String: UIImage] = [:]
+
+    /// Small square preview of a floor (about 0.6 m of it) for the colour picker.
+    static func floorThumbnail(pattern: RoomTheme.FloorPattern, hex: String) -> UIImage {
+        let key = "\(pattern.rawValue)|\(hex)"
+        if let cached = thumbnailCache[key] { return cached }
+        let image = FloorPainter.image(pattern: pattern, hex: hex, size: CGSize(width: 96, height: 96), pixelsPerMeter: 160)
+        thumbnailCache[key] = image
+        return image
     }
 
     private static func render<V: View>(_ view: V, scale: CGFloat = 2) -> TextureResource? {
@@ -177,11 +158,11 @@ private struct PlateArt: View {
         ZStack {
             Color(hex: isPlaceholder ? "#E4E1DA" : "#FFFFFF")
             Text(text)
-                .font(.system(size: size.height * 0.5, weight: .semibold, design: .rounded))
+                .font(.system(size: size.height * 0.58, weight: .bold, design: .rounded))
                 .foregroundStyle(Color(hex: isPlaceholder ? "#8A857B" : "#2B2B2B"))
                 .lineLimit(1)
                 .minimumScaleFactor(0.5)
-                .padding(.horizontal, size.height * 0.3)
+                .padding(.horizontal, size.height * 0.25)
         }
         .frame(width: size.width, height: size.height)
     }
