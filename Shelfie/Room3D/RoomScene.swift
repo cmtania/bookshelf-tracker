@@ -38,6 +38,10 @@ final class RoomScene {
     private var presented: Presented?
     private let dimmer = Entity()
 
+    private var theme = RoomTheme.default
+    private var roomEntity: Entity?
+    private var frameEntity: Entity?
+
     init() {
         camera.camera.fieldOfViewInDegrees = 55
         root.addChild(camera)
@@ -79,11 +83,28 @@ final class RoomScene {
     private func buildStaticIfNeeded() {
         guard !isBuilt else { return }
         isBuilt = true
-        root.addChild(RoomFactory.makeRoom())
-        root.addChild(BookcaseFactory.makeFrame(geometry))
+        buildThemedParts()
         root.addChild(RoomFactory.makeLights())
         root.addChild(makeDimmer())
         applyCamera(animated: false)
+    }
+
+    /// Applies new room colours; only the room and the bookcase frame are rebuilt, the books stay.
+    func setTheme(_ newTheme: RoomTheme) {
+        guard newTheme != theme else { return }
+        theme = newTheme
+        if isBuilt { buildThemedParts() }
+    }
+
+    private func buildThemedParts() {
+        roomEntity?.removeFromParent()
+        frameEntity?.removeFromParent()
+        let room = RoomFactory.makeRoom(theme: theme)
+        let frame = BookcaseFactory.makeFrame(geometry, paintHex: theme.shelfHex)
+        root.addChild(room)
+        root.addChild(frame)
+        roomEntity = room
+        frameEntity = frame
     }
 
     /// A translucent dark plane placed between the room and the presented book.

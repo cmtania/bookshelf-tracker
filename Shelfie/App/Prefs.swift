@@ -8,6 +8,9 @@ enum Prefs {
     static let streakAlertEnabledKey = "streakAlertEnabled"
     static let unlockedCacheKey = "unlockedCache"
     static let didSeedKey = "didSeedCategories"
+    static let shelfColorKey = "theme.shelf"
+    static let wallColorKey = "theme.wall"
+    static let floorColorKey = "theme.floor"
 
     static let defaultReminderMinutes = 19 * 60
     /// The "streak at risk" alert always goes out at 8 PM.

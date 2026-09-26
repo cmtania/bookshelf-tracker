@@ -18,6 +18,13 @@ extension UIColor {
         )
     }
 
+    /// Multiplies the brightness, e.g. 0.9 for a shade darker, 1.05 for a touch lighter.
+    func adjustingBrightness(by factor: CGFloat) -> UIColor {
+        var h: CGFloat = 0, s: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+        guard getHue(&h, saturation: &s, brightness: &b, alpha: &a) else { return self }
+        return UIColor(hue: h, saturation: s, brightness: min(1, max(0, b * factor)), alpha: a)
+    }
+
     var luminance: CGFloat {
         var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
         getRed(&r, green: &g, blue: &b, alpha: &a)

@@ -37,9 +37,13 @@ enum TextureFactory {
         return texture
     }
 
-    /// Light oak planks, like the reference room. Deterministic, so it looks the same every launch.
-    static func woodFloor() -> TextureResource? {
-        if let cached = cache["wood"] { return cached }
+    /// Wood planks around a base colour (light oak by default, like the reference room).
+    /// Deterministic, so the planks look the same every launch.
+    static func woodFloor(baseHex: String) -> TextureResource? {
+        let key = "wood|\(baseHex)"
+        if let cached = cache[key] { return cached }
+        var baseRed: CGFloat = 0, baseGreen: CGFloat = 0, baseBlue: CGFloat = 0, baseAlpha: CGFloat = 0
+        UIColor(hex: baseHex).getRed(&baseRed, green: &baseGreen, blue: &baseBlue, alpha: &baseAlpha)
         let pixels = 1024
         let format = UIGraphicsImageRendererFormat()
         format.scale = 1
@@ -54,8 +58,9 @@ enum TextureFactory {
                 var x = -CGFloat(Int.random(in: 0...180, using: &rng))
                 while x < CGFloat(pixels) {
                     let length = CGFloat(Int.random(in: 150...260, using: &rng))
-                    let tone = 0.80 + CGFloat(Int.random(in: 0...100, using: &rng)) / 1000
-                    UIColor(red: tone, green: tone * 0.84, blue: tone * 0.64, alpha: 1).setFill()
+                    // Each plank is a little lighter or darker than the base colour.
+                    let tone = 0.94 + CGFloat(Int.random(in: 0...120, using: &rng)) / 1000
+                    UIColor(red: min(1, baseRed * tone), green: min(1, baseGreen * tone), blue: min(1, baseBlue * tone), alpha: 1).setFill()
                     cg.fill(CGRect(x: x, y: top, width: length, height: rowHeight))
                     UIColor(white: 0, alpha: 0.05).setFill()
                     for _ in 0..<3 {
@@ -72,7 +77,7 @@ enum TextureFactory {
         }
         guard let cgImage = image.cgImage else { return nil }
         let texture = try? TextureResource.generate(from: cgImage, options: .init(semantic: .color))
-        cache["wood"] = texture
+        cache[key] = texture
         return texture
     }
 

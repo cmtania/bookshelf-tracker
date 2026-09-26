@@ -1,21 +1,23 @@
 import Foundation
 import RealityKit
+import UIKit
 
-/// Builds the bookcase frame once, and each compartment (tap target, label, books) on every shelf change.
+/// Builds the bookcase frame (rebuilt when the theme changes), and each compartment
+/// (tap target, label, books) on every shelf change.
 @MainActor
 enum BookcaseFactory {
-    static let paintHex = "#F1EFEA"
-
     struct CompartmentBuild {
         let entity: Entity
         let books: [UUID: Entity]
     }
 
-    static func makeFrame(_ g: BookcaseGeometry) -> Entity {
+    static func makeFrame(_ g: BookcaseGeometry, paintHex: String) -> Entity {
         let frame = Entity()
         frame.name = "bookcase"
-        let paint = RoomFactory.material(hex: paintHex, roughness: 0.7)
-        let backPaint = RoomFactory.material(hex: "#E6E3DC", roughness: 0.85)
+        let paintColor = UIColor(hex: paintHex)
+        let paint = RoomFactory.material(color: paintColor, roughness: 0.7)
+        // The back panel sits in shadow, so it's a touch darker than the frame.
+        let backPaint = RoomFactory.material(color: paintColor.adjustingBrightness(by: 0.93), roughness: 0.85)
 
         func board(_ width: Float, _ height: Float, _ depth: Float, _ position: SIMD3<Float>, _ material: PhysicallyBasedMaterial) {
             let entity = ModelEntity(mesh: .generateBox(width: width, height: height, depth: depth), materials: [material])
@@ -55,31 +57,21 @@ enum BookcaseFactory {
         entity.components.set(CollisionComponent(shapes: [backShape]))
         entity.components.set(InputTargetComponent())
 
-        let packer = ShelfPacker(innerWidth: g.innerWidth - 0.01, innerHeight: g.rowHeight)
-        let dimensions = Dictionary(
-            compartment.books.map { ($0.id, BookDimensions(pages: $0.totalPages, id: $0.id)) },
-            uniquingKeysWith: { first, _ in first }
-        )
-        let byID = Dictionary(compartment.books.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
-        let items = compartment.books.compactMap { book -> ShelfPacker.Item? in
-            guard let d = dimensions[book.id] else { return nil }
-            return ShelfPacker.Item(id: book.id, thickness: d.thickness, lieFlat: book.status == .wantToRead)
-        }
-        let layout = packer.pack(items)
-
+        let layout = CompartmentLayout(compartment, geometry: g)
         var books: [UUID: Entity] = [:]
-        let inset: Float = 0.005
         let front = g.localFrontZ - 0.012
-        for placement in layout.placements {
-            guard let book = byID[placement.id], let d = dimensions[placement.id] else { continue }
+        for entry in layout.entries {
+            let book = entry.book
+            let d = entry.dimensions
             let bookEntity = BookEntityFactory.make(book, dimensions: d)
             let protrude: Float = book.status == .reading ? 0.03 : 0
-            if placement.lying {
+            let z = front - d.depth / 2 + protrude
+            if entry.placement.lying {
                 // Rotated 90° about z: thickness becomes vertical, and the spine text reads left to right.
                 bookEntity.orientation = simd_quatf(angle: .pi / 2, axis: [0, 0, 1])
-                bookEntity.position = [inset + placement.x + packer.stackFootprint / 2, placement.y + d.thickness / 2, front - d.depth / 2 + protrude]
+                bookEntity.position = [layout.centerX(of: entry), layout.bottomY(of: entry) + d.thickness / 2, z]
             } else {
-                bookEntity.position = [inset + placement.x + d.thickness / 2, d.height / 2, front - d.depth / 2 + protrude]
+                bookEntity.position = [layout.centerX(of: entry), d.height / 2, z]
             }
             entity.addChild(bookEntity)
             books[book.id] = bookEntity

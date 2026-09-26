@@ -1,17 +1,19 @@
 import RealityKit
 import UIKit
 
-/// The white room with a light wood floor (matches the reference image).
+/// The room around the bookcase: walls, ceiling, wood floor and skirting, coloured by the theme.
+/// The default theme is the white room with a light wood floor from the reference image.
 @MainActor
 enum RoomFactory {
     static let roomWidth: Float = 5
     static let roomDepth: Float = 7
     static let roomHeight: Float = 3.2
 
-    static func makeRoom() -> Entity {
+    static func makeRoom(theme: RoomTheme) -> Entity {
         let room = Entity()
         room.name = "room"
-        let wall = material(hex: "#F3F2EF", roughness: 0.95)
+        let wallColor = UIColor(hex: theme.wallHex)
+        let wall = material(color: wallColor, roughness: 0.95)
         let halfWidth = roomWidth / 2
 
         let back = ModelEntity(mesh: .generatePlane(width: roomWidth, height: roomHeight), materials: [wall])
@@ -29,20 +31,26 @@ enum RoomFactory {
         right.orientation = simd_quatf(angle: -.pi / 2, axis: [0, 1, 0])
         room.addChild(right)
 
-        let ceiling = ModelEntity(mesh: .generatePlane(width: roomWidth, depth: roomDepth), materials: [material(hex: "#FAFAF8", roughness: 1)])
+        let ceiling = ModelEntity(
+            mesh: .generatePlane(width: roomWidth, depth: roomDepth),
+            materials: [material(color: wallColor.adjustingBrightness(by: 1.04), roughness: 1)]
+        )
         ceiling.position = [0, roomHeight, roomDepth / 2]
         ceiling.orientation = simd_quatf(angle: .pi, axis: [1, 0, 0])
         room.addChild(ceiling)
 
-        var floorMaterial = material(hex: "#D9B98C", roughness: 0.6)
-        if let wood = TextureFactory.woodFloor() {
+        var floorMaterial = material(hex: theme.floorHex, roughness: 0.6)
+        if let wood = TextureFactory.woodFloor(baseHex: theme.floorHex) {
             floorMaterial.baseColor = .init(tint: .white, texture: .init(wood))
         }
         let floor = ModelEntity(mesh: .generatePlane(width: roomWidth, depth: roomDepth), materials: [floorMaterial])
         floor.position = [0, 0, roomDepth / 2]
         room.addChild(floor)
 
-        let skirting = ModelEntity(mesh: .generateBox(width: roomWidth, height: 0.08, depth: 0.012), materials: [material(hex: "#FFFFFF", roughness: 0.7)])
+        let skirting = ModelEntity(
+            mesh: .generateBox(width: roomWidth, height: 0.08, depth: 0.012),
+            materials: [material(color: wallColor.adjustingBrightness(by: 1.06), roughness: 0.7)]
+        )
         skirting.position = [0, 0.04, 0.006]
         room.addChild(skirting)
 
@@ -71,8 +79,12 @@ enum RoomFactory {
     }
 
     static func material(hex: String, roughness: Float) -> PhysicallyBasedMaterial {
+        material(color: UIColor(hex: hex), roughness: roughness)
+    }
+
+    static func material(color: UIColor, roughness: Float) -> PhysicallyBasedMaterial {
         var material = PhysicallyBasedMaterial()
-        material.baseColor = .init(tint: UIColor(hex: hex))
+        material.baseColor = .init(tint: color)
         material.roughness = .init(floatLiteral: roughness)
         material.metallic = .init(floatLiteral: 0)
         return material

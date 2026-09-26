@@ -20,6 +20,14 @@ struct SettingsScreen: View {
         NavigationStack {
             List {
                 unlockSection
+                Section("Appearance") {
+                    NavigationLink {
+                        RoomThemeEditor()
+                            .navigationTitle("Room colors")
+                    } label: {
+                        Label("Room colors", systemImage: "paintbrush.fill")
+                    }
+                }
                 categoriesSection
                 remindersSection
                 aboutSection

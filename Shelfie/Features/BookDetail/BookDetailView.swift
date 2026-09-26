@@ -1,25 +1,22 @@
 import SwiftData
 import SwiftUI
 
+/// The "Log reading" screen, opened from the book shown up close on the shelf. Starts at the
+/// page progress; the book's details and Edit live under the 3D book instead.
 struct BookDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var context
     @Bindable var book: Book
 
     @State private var logging = false
-    @State private var editing = false
     @State private var addingNote = false
     @State private var editingNote: BookNote?
-    @State private var pendingDelete = false
 
     private let streaks = StreakCalculator()
 
     var body: some View {
         NavigationStack {
             List {
-                Section {
-                    header
-                }
                 Section {
                     progressRow
                     streakRow
@@ -41,12 +38,9 @@ struct BookDetailView: View {
                 notesSection
                 sessionsSection
             }
-            .navigationTitle(book.title)
+            .navigationTitle("Log reading")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button("Edit") { editing = true }
-                }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { dismiss() }
                 }
@@ -60,53 +54,10 @@ struct BookDetailView: View {
             .sheet(item: $editingNote) { note in
                 NoteEditSheet(book: book, note: note)
             }
-            .sheet(isPresented: $editing, onDismiss: deleteIfRequested) {
-                BookEditView(book: book, initialCategory: nil, onDelete: { pendingDelete = true })
-            }
         }
     }
 
     // MARK: Sections
-
-    private var header: some View {
-        HStack(spacing: 14) {
-            RoundedRectangle(cornerRadius: 4)
-                .fill(Color(hex: book.spineColorHex))
-                .frame(width: 34, height: 54)
-            VStack(alignment: .leading, spacing: 3) {
-                Text(book.title)
-                    .font(.headline)
-                if !book.author.isEmpty {
-                    Text(book.author)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-                if let category = book.category {
-                    Text(category.name)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-            }
-            Spacer(minLength: 8)
-            Menu {
-                ForEach(ReadingStatus.allCases) { status in
-                    Button {
-                        book.setStatus(status)
-                        saveAndReschedule()
-                    } label: {
-                        Label(status.label, systemImage: status.symbol)
-                    }
-                }
-            } label: {
-                Label(book.status.label, systemImage: book.status.symbol)
-                    .font(.caption.weight(.semibold))
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 6)
-                    .background(Capsule().fill(Color.accentColor.opacity(0.15)))
-            }
-        }
-        .padding(.vertical, 4)
-    }
 
     private var progressRow: some View {
         HStack(spacing: 16) {
@@ -255,21 +206,5 @@ struct BookDetailView: View {
     private func saveAndReschedule() {
         try? context.save()
         Task { await ReminderScheduler.reschedule(context: context) }
-    }
-
-    /// Runs after the edit sheet closes. Dismiss this sheet first, then delete, so no view
-    /// reads the book after it's gone.
-    private func deleteIfRequested() {
-        guard pendingDelete else { return }
-        pendingDelete = false
-        let doomed = self.book
-        let modelContext = self.context
-        dismiss()
-        Task {
-            try? await Task.sleep(for: .milliseconds(450))
-            modelContext.delete(doomed)
-            try? modelContext.save()
-            await ReminderScheduler.reschedule(context: modelContext)
-        }
     }
 }

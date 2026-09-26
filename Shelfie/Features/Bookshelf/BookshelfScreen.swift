@@ -24,9 +24,26 @@ struct BookshelfScreen: View {
     @State private var addingBook = false
     @State private var addingCategory = false
     @State private var showingPaywall = false
+    @State private var editingTheme = false
+    @State private var sharing = false
+    @State private var renamingCategory: BookCategory?
+
+    @AppStorage(Prefs.shelfColorKey) private var shelfHex = RoomTheme.default.shelfHex
+    @AppStorage(Prefs.wallColorKey) private var wallHex = RoomTheme.default.wallHex
+    @AppStorage(Prefs.floorColorKey) private var floorHex = RoomTheme.default.floorHex
 
     private var snapshot: ShelfSnapshot {
         ShelfSnapshot.make(categories: categories, books: books)
+    }
+
+    private var theme: RoomTheme {
+        RoomTheme(shelfHex: shelfHex, wallHex: wallHex, floorHex: floorHex)
+    }
+
+    /// Text over the room follows the wall colour, not the system appearance: a white room
+    /// needs dark text even in Dark Mode, and a charcoal wall needs light text.
+    private var overlayScheme: ColorScheme {
+        UIColor(hex: wallHex).luminance < 0.5 ? .dark : .light
     }
 
     private var focusedCategory: BookCategory? {
@@ -59,17 +76,23 @@ struct BookshelfScreen: View {
             .ignoresSafeArea()
             .accessibilityHidden(true)
 
-            if let book = presentedBook {
-                presentationOverlay(book)
-            } else {
-                VStack(spacing: 0) {
-                    topBar(shelf)
-                    Spacer(minLength: 0)
-                    chipRow(shelf)
+            Group {
+                if let book = presentedBook {
+                    presentationOverlay(book)
+                } else {
+                    VStack(spacing: 0) {
+                        topBar(shelf)
+                        Spacer(minLength: 0)
+                        chipRow(shelf)
+                    }
+                    .padding(.bottom, 8)
+                    .transition(.opacity)
                 }
-                .padding(.bottom, 8)
-                .transition(.opacity)
             }
+            .environment(\.colorScheme, overlayScheme)
+        }
+        .onChange(of: theme, initial: true) { _, newTheme in
+            scene.setTheme(newTheme)
         }
         .onChange(of: shelf, initial: true) { _, newValue in
             scene.update(newValue)
@@ -98,6 +121,38 @@ struct BookshelfScreen: View {
         .sheet(isPresented: $showingPaywall) {
             PaywallView()
         }
+        .sheet(isPresented: $editingTheme) {
+            NavigationStack {
+                RoomThemeEditor()
+                    .navigationTitle("Room colors")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .confirmationAction) {
+                            Button("Done") { editingTheme = false }
+                        }
+                    }
+            }
+            // A short sheet you can see the room through, so colour changes show live.
+            .presentationDetents([.fraction(0.45), .large])
+            .presentationBackgroundInteraction(.enabled(upThrough: .fraction(0.45)))
+        }
+        .sheet(isPresented: $sharing) {
+            ShareShelfSheet(card: shareCard(shelf))
+        }
+        .sheet(item: $renamingCategory) { category in
+            CategoryEditSheet(category: category)
+        }
+    }
+
+    private func shareCard(_ snapshot: ShelfSnapshot) -> ShelfShareCard {
+        ShelfShareCard(
+            snapshot: snapshot,
+            shelfHex: shelfHex,
+            bookCount: books.count,
+            readingCount: books.filter { $0.status == .reading }.count,
+            finishedCount: books.filter { $0.status == .finished }.count,
+            streak: StreakCalculator().currentStreak(books.flatMap(\.sessionDates))
+        )
     }
 
     // MARK: Overlay
@@ -126,6 +181,39 @@ struct BookshelfScreen: View {
                     .lineLimit(1)
             }
             Spacer(minLength: 8)
+            if let category = focusedCategory {
+                Button {
+                    renamingCategory = category
+                } label: {
+                    Image(systemName: "pencil")
+                        .font(.headline)
+                        .frame(width: 30, height: 30)
+                }
+                .buttonStyle(.glass)
+                .buttonBorderShape(.circle)
+                .accessibilityLabel("Rename \(category.name)")
+            } else {
+                Button {
+                    editingTheme = true
+                } label: {
+                    Image(systemName: "paintbrush.fill")
+                        .font(.headline)
+                        .frame(width: 30, height: 30)
+                }
+                .buttonStyle(.glass)
+                .buttonBorderShape(.circle)
+                .accessibilityLabel("Room colors")
+            }
+            Button {
+                sharing = true
+            } label: {
+                Image(systemName: "square.and.arrow.up")
+                    .font(.headline)
+                    .frame(width: 30, height: 30)
+            }
+            .buttonStyle(.glass)
+            .buttonBorderShape(.circle)
+            .accessibilityLabel("Share your shelf")
             Button {
                 requestAddBook()
             } label: {
