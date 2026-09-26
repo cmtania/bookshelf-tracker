@@ -3,6 +3,7 @@ import SwiftUI
 
 /// Owns the RealityKit scene: room, bookcase, books and the camera.
 /// Two camera poses: overview of the whole bookcase, and close-up on one compartment.
+/// A tapped book is "presented": it slides out, then flies up in front of the camera showing its cover.
 @MainActor
 final class RoomScene {
     struct Hit {
@@ -21,7 +22,21 @@ final class RoomScene {
     private var isBuilt = false
     private var viewAspect: Float = 0.46
     private var bookEntities: [UUID: Entity] = [:]
-    private var pulledOut: (entity: Entity, rest: Transform)?
+    private var bookSnapshots: [UUID: BookSnapshot] = [:]
+    /// Where the camera is (or is heading); presentation poses are placed relative to it.
+    private var cameraTarget = Transform()
+
+    /// The book currently lifted out of the shelf and shown up close.
+    private struct Presented {
+        var id: UUID
+        var entity: Entity
+        var rest: Transform
+        var dimensions: BookDimensions
+        var yaw: Float = 0
+        var dragStartYaw: Float?
+    }
+    private var presented: Presented?
+    private let dimmer = Entity()
 
     init() {
         camera.camera.fieldOfViewInDegrees = 55
@@ -33,8 +48,8 @@ final class RoomScene {
 
     func update(_ snapshot: ShelfSnapshot) {
         buildStaticIfNeeded()
-        pulledOut = nil
         bookEntities.removeAll()
+        bookSnapshots.removeAll()
         for child in Array(shelfRoot.children) {
             child.removeFromParent()
         }
@@ -42,6 +57,22 @@ final class RoomScene {
             let build = BookcaseFactory.makeCompartment(compartment, geometry: geometry)
             shelfRoot.addChild(build.entity)
             bookEntities.merge(build.books) { first, _ in first }
+            for book in compartment.books {
+                bookSnapshots[book.id] = book
+            }
+        }
+        // A rebuild (e.g. after logging a session changes the status) replaces every book entity.
+        // Keep the presented book up close by moving its new entity straight to the pose.
+        if let current = presented {
+            if let entity = bookEntities[current.id], let book = bookSnapshots[current.id] {
+                let dimensions = BookDimensions(pages: book.totalPages, id: book.id)
+                presented = Presented(id: current.id, entity: entity, rest: entity.transform, dimensions: dimensions, yaw: current.yaw)
+                BookEntityFactory.addCoverIfNeeded(to: entity, book: book, dimensions: dimensions)
+                entity.setTransformMatrix(presentationTransform(dimensions, yaw: current.yaw).matrix, relativeTo: nil)
+            } else {
+                presented = nil
+                dimmer.isEnabled = false
+            }
         }
     }
 
@@ -51,7 +82,18 @@ final class RoomScene {
         root.addChild(RoomFactory.makeRoom())
         root.addChild(BookcaseFactory.makeFrame(geometry))
         root.addChild(RoomFactory.makeLights())
+        root.addChild(makeDimmer())
         applyCamera(animated: false)
+    }
+
+    /// A translucent dark plane placed between the room and the presented book.
+    private func makeDimmer() -> Entity {
+        var material = UnlitMaterial(color: .black)
+        material.blending = .transparent(opacity: 0.45)
+        let plane = ModelEntity(mesh: .generatePlane(width: 20, height: 20), materials: [material])
+        dimmer.addChild(plane)
+        dimmer.isEnabled = false
+        return dimmer
     }
 
     // MARK: Camera
@@ -65,13 +107,13 @@ final class RoomScene {
     }
 
     func focus(compartment: Int?) {
-        pushBack()
         focusedCompartment = compartment
         applyCamera(animated: !reduceMotion)
     }
 
     private func applyCamera(animated: Bool) {
         let target = cameraTransform()
+        cameraTarget = target
         if animated {
             camera.move(to: target, relativeTo: nil, duration: 0.6, timingFunction: .easeInOut)
         } else {
@@ -113,30 +155,103 @@ final class RoomScene {
         return transform
     }
 
-    // MARK: Books
+    // MARK: Presenting a book
 
-    func pullOut(bookID: UUID) {
-        pushBack()
-        guard let entity = bookEntities[bookID] else { return }
+    private static let slideOutDuration = 0.3
+    private static let flyDuration = 0.6
+    /// Front cover towards the camera, turned a little so the spine shows and it reads as 3D.
+    private static let presentedYaw: Float = -.pi / 2 + 0.28
+
+    /// Slides the book out of the shelf, then flies it up to the camera, turning to show its front cover.
+    /// Returns once the animation has finished.
+    func present(bookID: UUID) async {
+        if presented != nil { dismissPresentedImmediately() }
+        guard let entity = bookEntities[bookID], let book = bookSnapshots[bookID] else { return }
+        let dimensions = BookDimensions(pages: book.totalPages, id: book.id)
         let rest = entity.transform
-        var out = rest
-        out.translation.z += 0.12
-        pulledOut = (entity, rest)
+        presented = Presented(id: bookID, entity: entity, rest: rest, dimensions: dimensions)
+        BookEntityFactory.addCoverIfNeeded(to: entity, book: book, dimensions: dimensions)
+        let target = presentationTransform(dimensions, yaw: 0)
+
         if reduceMotion {
-            entity.transform = out
-        } else {
-            entity.move(to: out, relativeTo: entity.parent, duration: 0.35, timingFunction: .easeInOut)
+            showDimmer(behind: dimensions)
+            entity.setTransformMatrix(target.matrix, relativeTo: nil)
+            return
         }
+
+        var out = rest
+        out.translation.z += 0.2
+        entity.move(to: out, relativeTo: entity.parent, duration: Self.slideOutDuration, timingFunction: .easeOut)
+        try? await Task.sleep(for: .seconds(Self.slideOutDuration))
+        guard presented?.id == bookID, let current = presented?.entity else { return }
+
+        showDimmer(behind: dimensions)
+        current.move(to: target, relativeTo: nil, duration: Self.flyDuration, timingFunction: .easeInOut)
+        try? await Task.sleep(for: .seconds(Self.flyDuration))
     }
 
-    func pushBack() {
-        guard let pulled = pulledOut else { return }
-        pulledOut = nil
+    /// Flies the book back into its slot on the shelf.
+    func dismissPresented() async {
+        guard let current = presented else { return }
+        presented = nil
+        dimmer.isEnabled = false
         if reduceMotion {
-            pulled.entity.transform = pulled.rest
-        } else {
-            pulled.entity.move(to: pulled.rest, relativeTo: pulled.entity.parent, duration: 0.3, timingFunction: .easeInOut)
+            current.entity.transform = current.rest
+            return
         }
+        var out = current.rest
+        out.translation.z += 0.2
+        current.entity.move(to: out, relativeTo: current.entity.parent, duration: Self.flyDuration, timingFunction: .easeInOut)
+        try? await Task.sleep(for: .seconds(Self.flyDuration))
+        current.entity.move(to: current.rest, relativeTo: current.entity.parent, duration: Self.slideOutDuration, timingFunction: .easeIn)
+    }
+
+    /// Puts the book back without animating, e.g. before it's deleted.
+    func dismissPresentedImmediately() {
+        guard let current = presented else { return }
+        presented = nil
+        dimmer.isEnabled = false
+        current.entity.transform = current.rest
+    }
+
+    /// Turns the presented book around its vertical axis while the user drags.
+    func rotatePresented(dragWidth: CGFloat) {
+        guard var current = presented else { return }
+        let start = current.dragStartYaw ?? current.yaw
+        current.dragStartYaw = start
+        current.yaw = start + Float(dragWidth / 120)
+        presented = current
+        current.entity.setOrientation(presentationTransform(current.dimensions, yaw: current.yaw).rotation, relativeTo: nil)
+    }
+
+    func endRotatePresented() {
+        presented?.dragStartYaw = nil
+    }
+
+    /// Pose in front of the camera where the book fills most of the space between the top bar and the buttons.
+    private func presentationTransform(_ d: BookDimensions, yaw: Float) -> Transform {
+        let fov = camera.camera.fieldOfViewInDegrees * .pi / 180
+        let verticalTan = tan(fov / 2)
+        let horizontalTan = verticalTan * viewAspect
+        // Share of the screen height / width the cover should take.
+        let heightShare: Float = 0.46
+        let widthShare: Float = 0.64
+        let distance = max(d.height / (2 * verticalTan * heightShare), d.depth / (2 * horizontalTan * widthShare))
+        // Lift it a little so the Log reading / Edit buttons fit underneath.
+        let lift = distance * verticalTan * 0.14
+        var transform = Transform()
+        transform.translation = cameraTarget.translation + cameraTarget.rotation.act(SIMD3(0, lift, -distance))
+        transform.rotation = cameraTarget.rotation * simd_quatf(angle: Self.presentedYaw + yaw, axis: [0, 1, 0])
+        return transform
+    }
+
+    private func showDimmer(behind d: BookDimensions) {
+        let bookDistance = simd_distance(presentationTransform(d, yaw: 0).translation, cameraTarget.translation)
+        dimmer.transform = Transform(
+            rotation: cameraTarget.rotation,
+            translation: cameraTarget.translation + cameraTarget.rotation.act(SIMD3(0, 0, -(bookDistance + 0.15)))
+        )
+        dimmer.isEnabled = true
     }
 
     // MARK: Hit testing

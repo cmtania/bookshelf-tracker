@@ -24,8 +24,7 @@ struct NoteEditSheet: View {
                         .accessibilityLabel("Note")
                 }
                 Section {
-                    TextField("Page (optional)", value: $page, format: .number)
-                        .keyboardType(.numberPad)
+                    NumberField("Page (optional)", value: $page)
                 }
                 if let note {
                     Section {

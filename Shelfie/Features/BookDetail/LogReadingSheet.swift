@@ -47,8 +47,7 @@ struct LogReadingSheet: View {
                         }
                     }
                     .pickerStyle(.segmented)
-                    TextField(mode == .pageReached ? "Page number" : "Pages read", value: $value, format: .number)
-                        .keyboardType(.numberPad)
+                    NumberField(mode == .pageReached ? "Page number" : "Pages read", value: $value)
                         .focused($valueFocused)
                 } footer: {
                     if pagesGained > 0 {
@@ -59,8 +58,7 @@ struct LogReadingSheet: View {
                 }
 
                 Section {
-                    TextField("Minutes read (optional)", value: $minutes, format: .number)
-                        .keyboardType(.numberPad)
+                    NumberField("Minutes read (optional)", value: $minutes, maxDigits: 4)
                     DatePicker("When", selection: $date, in: ...Date(), displayedComponents: [.date, .hourAndMinute])
                 }
 

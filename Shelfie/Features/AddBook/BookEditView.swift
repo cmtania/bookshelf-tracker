@@ -41,11 +41,9 @@ struct BookEditView: View {
                         .textInputAutocapitalization(.words)
                     TextField("Author", text: $author)
                         .textInputAutocapitalization(.words)
-                    TextField("Number of pages", value: $totalPages, format: .number)
-                        .keyboardType(.numberPad)
+                    NumberField("Number of pages", value: $totalPages)
                     if book != nil {
-                        TextField("Current page", value: $currentPage, format: .number)
-                            .keyboardType(.numberPad)
+                        NumberField("Current page", value: $currentPage)
                     }
                 }
 
@@ -67,8 +65,7 @@ struct BookEditView: View {
                 }
 
                 Section {
-                    TextField("Daily goal in pages (optional)", value: $dailyGoal, format: .number)
-                        .keyboardType(.numberPad)
+                    NumberField("Daily goal in pages (optional)", value: $dailyGoal, maxDigits: 4)
                     Toggle("Reminders for this book", isOn: $remindersOn)
                 } header: {
                     Text("Goal & reminders")

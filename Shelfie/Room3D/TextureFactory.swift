@@ -18,6 +18,16 @@ enum TextureFactory {
         return texture
     }
 
+    /// Front cover, rendered sharper than spines because it's shown filling the screen.
+    static func cover(title: String, author: String, colorHex: String, width: Float, height: Float) -> TextureResource? {
+        let key = "cover|\(title)|\(author)|\(colorHex)|\(width)|\(height)"
+        if let cached = cache[key] { return cached }
+        let size = CGSize(width: CGFloat(width) * pointsPerMeter, height: CGFloat(height) * pointsPerMeter)
+        let texture = render(CoverArt(title: title, author: author, colorHex: colorHex, size: size), scale: 3)
+        cache[key] = texture
+        return texture
+    }
+
     static func plate(text: String, isPlaceholder: Bool, width: Float, height: Float) -> TextureResource? {
         let key = "plate|\(text)|\(isPlaceholder)|\(width)|\(height)"
         if let cached = cache[key] { return cached }
@@ -66,9 +76,9 @@ enum TextureFactory {
         return texture
     }
 
-    private static func render<V: View>(_ view: V) -> TextureResource? {
+    private static func render<V: View>(_ view: V, scale: CGFloat = 2) -> TextureResource? {
         let renderer = ImageRenderer(content: view)
-        renderer.scale = 2
+        renderer.scale = scale
         guard let cgImage = renderer.cgImage else { return nil }
         return try? TextureResource.generate(from: cgImage, options: .init(semantic: .color))
     }
@@ -106,6 +116,49 @@ private struct SpineArt: View {
             .fill(ink.opacity(0.35))
             .frame(height: max(1, size.height * 0.012))
             .padding(.horizontal, size.width * 0.15)
+    }
+}
+
+/// Front cover: cloth colour with a soft light falloff, an inset frame, the title and the author.
+private struct CoverArt: View {
+    let title: String
+    let author: String
+    let colorHex: String
+    let size: CGSize
+
+    var body: some View {
+        let ink = Palette.ink(on: colorHex)
+        ZStack {
+            Color(hex: colorHex)
+            LinearGradient(colors: [.white.opacity(0.10), .black.opacity(0.18)], startPoint: .top, endPoint: .bottom)
+            RoundedRectangle(cornerRadius: size.width * 0.02)
+                .strokeBorder(ink.opacity(0.45), lineWidth: max(1, size.width * 0.012))
+                .padding(size.width * 0.06)
+            VStack(spacing: size.height * 0.03) {
+                Spacer(minLength: 0)
+                Text(title)
+                    .font(.system(size: size.width * 0.12, weight: .bold, design: .serif))
+                    .multilineTextAlignment(.center)
+                    .lineLimit(4)
+                    .minimumScaleFactor(0.5)
+                Rectangle()
+                    .fill(ink.opacity(0.5))
+                    .frame(width: size.width * 0.25, height: max(1, size.height * 0.006))
+                if !author.isEmpty {
+                    Text(author.uppercased())
+                        .font(.system(size: size.width * 0.055, weight: .medium, design: .serif))
+                        .tracking(size.width * 0.006)
+                        .multilineTextAlignment(.center)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.6)
+                }
+                Spacer(minLength: 0)
+                Spacer(minLength: 0)
+            }
+            .foregroundStyle(ink)
+            .padding(.horizontal, size.width * 0.14)
+        }
+        .frame(width: size.width, height: size.height)
     }
 }
 

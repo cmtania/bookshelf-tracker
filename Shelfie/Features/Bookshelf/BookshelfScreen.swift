@@ -2,7 +2,8 @@ import RealityKit
 import SwiftData
 import SwiftUI
 
-/// Home: the 3D room with the bookcase. Tap a compartment to look closer, tap a spine to open the book.
+/// Home: the 3D room with the bookcase. Tap a compartment to look closer; tap a spine and the book
+/// slides out, flies up and turns to show its front cover, with Log reading and Edit underneath.
 /// The glass chip row at the bottom mirrors the 3D view with full-size tap targets (and VoiceOver).
 struct BookshelfScreen: View {
     @Environment(\.modelContext) private var context
@@ -14,7 +15,12 @@ struct BookshelfScreen: View {
 
     @State private var scene = RoomScene()
     @State private var focused: Int?
-    @State private var selectedBook: Book?
+    /// The book lifted out of the shelf. Looked up from the query each time, so a deleted book just disappears.
+    @State private var presentedID: UUID?
+    @State private var showsPresentedControls = false
+    @State private var readingBook: Book?
+    @State private var editingBook: Book?
+    @State private var pendingDelete = false
     @State private var addingBook = false
     @State private var addingCategory = false
     @State private var showingPaywall = false
@@ -26,6 +32,11 @@ struct BookshelfScreen: View {
     private var focusedCategory: BookCategory? {
         guard let focused, focused < categories.count else { return nil }
         return categories[focused]
+    }
+
+    private var presentedBook: Book? {
+        guard let presentedID else { return nil }
+        return books.first { $0.id == presentedID }
     }
 
     var body: some View {
@@ -48,24 +59,35 @@ struct BookshelfScreen: View {
             .ignoresSafeArea()
             .accessibilityHidden(true)
 
-            VStack(spacing: 0) {
-                topBar(shelf)
-                Spacer(minLength: 0)
-                chipRow(shelf)
+            if let book = presentedBook {
+                presentationOverlay(book)
+            } else {
+                VStack(spacing: 0) {
+                    topBar(shelf)
+                    Spacer(minLength: 0)
+                    chipRow(shelf)
+                }
+                .padding(.bottom, 8)
+                .transition(.opacity)
             }
-            .padding(.bottom, 8)
         }
         .onChange(of: shelf, initial: true) { _, newValue in
             scene.update(newValue)
             if let focused, newValue.compartments[focused].isEmpty {
                 setFocus(nil)
             }
+            if let presentedID, !newValue.compartments.contains(where: { $0.books.contains { $0.id == presentedID } }) {
+                closePresentation(animated: false)
+            }
         }
         .onChange(of: reduceMotion, initial: true) { _, value in
             scene.reduceMotion = value
         }
-        .sheet(item: $selectedBook, onDismiss: { scene.pushBack() }) { book in
+        .sheet(item: $readingBook) { book in
             BookDetailView(book: book)
+        }
+        .sheet(item: $editingBook, onDismiss: deleteIfRequested) { book in
+            BookEditView(book: book, initialCategory: nil, onDelete: { pendingDelete = true })
         }
         .sheet(isPresented: $addingBook) {
             BookEditView(book: nil, initialCategory: focusedCategory)
@@ -117,6 +139,101 @@ struct BookshelfScreen: View {
         }
         .padding(.horizontal, 16)
         .padding(.top, 8)
+    }
+
+    /// Shown while a book is up close. Tap outside the buttons to put it back; drag to turn it.
+    private func presentationOverlay(_ book: Book) -> some View {
+        ZStack {
+            Color.clear
+                .contentShape(Rectangle())
+                .ignoresSafeArea()
+                .onTapGesture { closePresentation(animated: true) }
+                .gesture(
+                    DragGesture(minimumDistance: 8)
+                        .onChanged { value in scene.rotatePresented(dragWidth: value.translation.width) }
+                        .onEnded { _ in scene.endRotatePresented() }
+                )
+                .accessibilityHidden(true)
+
+            VStack(spacing: 12) {
+                HStack {
+                    Spacer()
+                    Button {
+                        closePresentation(animated: true)
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.headline)
+                            .frame(width: 30, height: 30)
+                    }
+                    .buttonStyle(.glass)
+                    .buttonBorderShape(.circle)
+                    .accessibilityLabel("Put the book back")
+                }
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+
+                Spacer(minLength: 0)
+
+                if showsPresentedControls {
+                    presentedControls(book)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+            }
+            .padding(.bottom, 8)
+        }
+    }
+
+    private func presentedControls(_ book: Book) -> some View {
+        let streak = StreakCalculator().currentStreak(book.sessionDates)
+        return VStack(spacing: 12) {
+            VStack(spacing: 4) {
+                Text(book.title)
+                    .font(.title3.bold())
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
+                if !book.author.isEmpty {
+                    Text(book.author)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+                HStack(spacing: 12) {
+                    Label("Page \(book.currentPage) of \(book.totalPages)", systemImage: "book.closed")
+                    Label("\(streak)-day streak", systemImage: "flame.fill")
+                        .foregroundStyle(streak > 0 ? Color.orange : Color.secondary)
+                }
+                .font(.footnote.weight(.medium))
+                .padding(.top, 2)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12)
+            .padding(.horizontal, 16)
+            .glassEffect(.regular, in: .rect(cornerRadius: 22))
+            .accessibilityElement(children: .combine)
+
+            HStack(spacing: 12) {
+                Button {
+                    readingBook = book
+                } label: {
+                    Label("Log reading", systemImage: "plus")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                        .frame(minHeight: 36)
+                }
+                .buttonStyle(.glassProminent)
+
+                Button {
+                    editingBook = book
+                } label: {
+                    Label("Edit", systemImage: "pencil")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                        .frame(minHeight: 36)
+                }
+                .buttonStyle(.glass)
+            }
+        }
+        .padding(.horizontal, 16)
     }
 
     private func subtitle(_ snapshot: ShelfSnapshot) -> String {
@@ -194,12 +311,40 @@ struct BookshelfScreen: View {
     }
 
     private func open(bookID: UUID) {
-        guard let book = books.first(where: { $0.id == bookID }) else { return }
-        scene.pullOut(bookID: bookID)
-        let delay: Duration = reduceMotion ? .zero : .milliseconds(300)
+        guard books.contains(where: { $0.id == bookID }) else { return }
+        showsPresentedControls = false
+        withAnimation(.snappy) { presentedID = bookID }
         Task {
-            try? await Task.sleep(for: delay)
-            selectedBook = book
+            await scene.present(bookID: bookID)
+            // Only if the user hasn't already closed it or opened another book meanwhile.
+            guard presentedID == bookID else { return }
+            withAnimation(.snappy) { showsPresentedControls = true }
+        }
+    }
+
+    private func closePresentation(animated: Bool) {
+        withAnimation(.snappy) {
+            showsPresentedControls = false
+            presentedID = nil
+        }
+        if animated {
+            Task { await scene.dismissPresented() }
+        } else {
+            scene.dismissPresentedImmediately()
+        }
+    }
+
+    /// Runs after the Edit sheet closes. Put the book back first, then delete it, so nothing
+    /// on screen still reads the book once it's gone.
+    private func deleteIfRequested() {
+        guard pendingDelete, let book = presentedBook else { return }
+        pendingDelete = false
+        closePresentation(animated: false)
+        Task {
+            try? await Task.sleep(for: .milliseconds(200))
+            context.delete(book)
+            try? context.save()
+            await ReminderScheduler.reschedule(context: context)
         }
     }
 
