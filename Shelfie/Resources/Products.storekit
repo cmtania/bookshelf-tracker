@@ -1,0 +1,38 @@
+{
+  "identifier" : "5E1F0C2A",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "4.99",
+      "familyShareable" : true,
+      "internalID" : "6740000001",
+      "localizations" : [
+        {
+          "description" : "Unlimited books and all 10 bookcase compartments. One-time purchase.",
+          "displayName" : "Shelfie Unlock",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.cmtania.shelfie.unlock",
+      "referenceName" : "Shelfie Unlock",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : {
+    "_failTransactionsEnabled" : false,
+    "_locale" : "en_US",
+    "_storefront" : "USA",
+    "_storeKitErrors" : [
+
+    ]
+  },
+  "subscriptionGroups" : [
+
+  ],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+}
