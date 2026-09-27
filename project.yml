@@ -24,6 +24,16 @@ targets:
           - "Resources/Products.storekit"
       - path: Shelfie/Resources/Products.storekit
         buildPhase: none
+    # XcodeGen writes these keys into Shelfie/Info.plist (generated, git-ignored); Xcode merges
+    # them with the INFOPLIST_KEY_ settings below.
+    info:
+      path: Shelfie/Info.plist
+      properties:
+        # Launch screen: the logo centred on the warm cream background (dark brown in Dark Mode).
+        UILaunchScreen:
+          UIImageName: LaunchLogo
+          UIColorName: LaunchBackground
+          UIImageRespectsSafeAreaInsets: false
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.cmtania.shelfie
@@ -31,7 +41,6 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: Shelfie
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.books
-        INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: UIInterfaceOrientationPortrait
         INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO
         # Needed for "Save Image" in the share sheet when sharing the shelf picture.
