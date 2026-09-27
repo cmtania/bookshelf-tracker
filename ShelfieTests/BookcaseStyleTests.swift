@@ -57,4 +57,12 @@ struct BookcaseStyleTests {
         #expect(BookcaseStyle.allCases.filter(\.isPremium).count == BookcaseStyle.allCases.count - 1)
         #expect(RoomTheme.default.style == .classic)
     }
+
+    /// The ceiling moulding sits on Pocket's built-out wall; every other design leaves the wall flat.
+    @Test func ceilingMouldingFollowsTheBackWall() {
+        #expect(abs(BookcaseStyle.pocket.layout.wallFrontAtCeiling - 0.30) < 0.001)
+        for style in BookcaseStyle.allCases where style != .pocket {
+            #expect(style.layout.wallFrontAtCeiling == 0, "\(style.name)")
+        }
+    }
 }
