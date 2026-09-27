@@ -14,6 +14,7 @@ enum Prefs {
     static let shelfColorKey = "theme.shelf"
     static let wallColorKey = "theme.wall"
     static let floorColorKey = "theme.floor"
+    static let bookcaseStyleKey = "theme.style"
 
     static let defaultReminderMinutes = 19 * 60
     /// The "streak at risk" alert always goes out at 8 PM.
