@@ -183,6 +183,8 @@ struct BookshelfScreen: View {
                     .lineLimit(1)
             }
             Spacer(minLength: 8)
+            // Zoomed out: room colors + share the whole shelf.
+            // Zoomed into a compartment: rename it + add a book to it.
             if let category = focusedCategory {
                 Button {
                     renamingCategory = category
@@ -194,6 +196,17 @@ struct BookshelfScreen: View {
                 .buttonStyle(.glass)
                 .buttonBorderShape(.circle)
                 .accessibilityLabel("Rename \(category.name)")
+
+                Button {
+                    requestAddBook()
+                } label: {
+                    Image(systemName: "plus")
+                        .font(.headline)
+                        .frame(width: 30, height: 30)
+                }
+                .buttonStyle(.glass)
+                .buttonBorderShape(.circle)
+                .accessibilityLabel("Add book to \(category.name)")
             } else {
                 Button {
                     if gate.isUnlocked {
@@ -209,27 +222,18 @@ struct BookshelfScreen: View {
                 .buttonStyle(.glass)
                 .buttonBorderShape(.circle)
                 .accessibilityLabel("Room colors")
+
+                Button {
+                    sharing = true
+                } label: {
+                    Image(systemName: "square.and.arrow.up")
+                        .font(.headline)
+                        .frame(width: 30, height: 30)
+                }
+                .buttonStyle(.glass)
+                .buttonBorderShape(.circle)
+                .accessibilityLabel("Share your shelf")
             }
-            Button {
-                sharing = true
-            } label: {
-                Image(systemName: "square.and.arrow.up")
-                    .font(.headline)
-                    .frame(width: 30, height: 30)
-            }
-            .buttonStyle(.glass)
-            .buttonBorderShape(.circle)
-            .accessibilityLabel("Share your shelf")
-            Button {
-                requestAddBook()
-            } label: {
-                Image(systemName: "plus")
-                    .font(.headline)
-                    .frame(width: 30, height: 30)
-            }
-            .buttonStyle(.glass)
-            .buttonBorderShape(.circle)
-            .accessibilityLabel("Add book")
         }
         .padding(.horizontal, 16)
         .padding(.top, 8)
