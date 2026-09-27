@@ -13,10 +13,7 @@ enum RoomFactory {
         let room = Entity()
         room.name = "room"
         let wallColor = UIColor(hex: theme.wall.hex)
-        var wall = material(color: wallColor, roughness: 0.95)
-        if let plaster = TextureFactory.wall(hex: theme.wall.hex) {
-            wall.baseColor = .init(tint: .white, texture: .init(plaster))
-        }
+        let wall = wallMaterial(hex: theme.wall.hex)
         let halfWidth = roomWidth / 2
 
         let back = ModelEntity(mesh: .generatePlane(width: roomWidth, height: roomHeight), materials: [wall])
@@ -119,6 +116,15 @@ enum RoomFactory {
 
     static func material(hex: String, roughness: Float) -> PhysicallyBasedMaterial {
         material(color: UIColor(hex: hex), roughness: roughness)
+    }
+
+    /// Painted plaster in the wall colour (walls, and the thick wall of Pocket niches).
+    static func wallMaterial(hex: String) -> PhysicallyBasedMaterial {
+        var wall = material(color: UIColor(hex: hex), roughness: 0.95)
+        if let plaster = TextureFactory.wall(hex: hex) {
+            wall.baseColor = .init(tint: .white, texture: .init(plaster))
+        }
+        return wall
     }
 
     static func material(color: UIColor, roughness: Float) -> PhysicallyBasedMaterial {
