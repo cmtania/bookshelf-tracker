@@ -27,6 +27,8 @@ struct RootTabView: View {
                 SettingsScreen()
             }
         }
+        // The launch screen's logo, handed over smoothly and faded into the bookshelf.
+        .splashOnLaunch()
         .task {
             Seed.ifNeeded(context)
         }
