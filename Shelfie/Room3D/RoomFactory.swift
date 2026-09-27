@@ -13,7 +13,10 @@ enum RoomFactory {
         let room = Entity()
         room.name = "room"
         let wallColor = UIColor(hex: theme.wall.hex)
-        let wall = material(color: wallColor, roughness: 0.95)
+        var wall = material(color: wallColor, roughness: 0.95)
+        if let plaster = TextureFactory.wall(hex: theme.wall.hex) {
+            wall.baseColor = .init(tint: .white, texture: .init(plaster))
+        }
         let halfWidth = roomWidth / 2
 
         let back = ModelEntity(mesh: .generatePlane(width: roomWidth, height: roomHeight), materials: [wall])

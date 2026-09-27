@@ -4,45 +4,26 @@ import SwiftUI
 struct SettingsScreen: View {
     @Environment(\.modelContext) private var context
     @Environment(UnlockGate.self) private var gate
-    @Query(sort: \BookCategory.sortIndex) private var categories: [BookCategory]
 
     // Defaults must match Prefs.
     @AppStorage(Prefs.remindersEnabledKey) private var remindersEnabled = true
     @AppStorage(Prefs.reminderMinutesKey) private var reminderMinutes = Prefs.defaultReminderMinutes
     @AppStorage(Prefs.streakAlertEnabledKey) private var streakAlertEnabled = true
 
-    @State private var editingCategory: BookCategory?
-    @State private var addingCategory = false
     @State private var showingPaywall = false
-    @State private var blockedDelete: BookCategory?
 
+    // Categories are managed in their own tab (CategoriesScreen).
     var body: some View {
         NavigationStack {
             List {
                 unlockSection
                 appearanceSection
-                categoriesSection
                 remindersSection
                 aboutSection
             }
             .navigationTitle("Settings")
-            .sheet(item: $editingCategory) { category in
-                CategoryEditSheet(category: category)
-            }
-            .sheet(isPresented: $addingCategory) {
-                CategoryEditSheet(category: nil)
-            }
             .sheet(isPresented: $showingPaywall) {
                 PaywallView()
-            }
-            .alert(
-                "This category still has books",
-                isPresented: Binding(get: { blockedDelete != nil }, set: { if !$0 { blockedDelete = nil } }),
-                presenting: blockedDelete
-            ) { _ in
-                Button("OK", role: .cancel) {}
-            } message: { category in
-                Text("Move or delete the \(category.bookCount) books in “\(category.name)” first.")
             }
             .onChange(of: remindersEnabled) { _, enabled in
                 reschedule(requestPermission: enabled)
@@ -115,52 +96,6 @@ struct SettingsScreen: View {
         }
     }
 
-    private var categoriesSection: some View {
-        Section {
-            ForEach(categories) { category in
-                Button {
-                    editingCategory = category
-                } label: {
-                    HStack(spacing: 12) {
-                        Circle()
-                            .fill(Color(hex: category.colorHex))
-                            .frame(width: 14, height: 14)
-                        Text(category.name)
-                            .foregroundStyle(.primary)
-                        Spacer()
-                        Text("\(category.bookCount)")
-                            .foregroundStyle(.secondary)
-                    }
-                }
-            }
-            .onMove(perform: moveCategories)
-            .onDelete(perform: deleteCategories)
-
-            if categories.count < UnlockGate.maxCategories {
-                Button {
-                    if gate.canAddCategory(currentCount: categories.count) {
-                        addingCategory = true
-                    } else {
-                        showingPaywall = true
-                    }
-                } label: {
-                    Label("Add category", systemImage: "plus")
-                }
-            }
-        } header: {
-            HStack {
-                Text("Categories")
-                Spacer()
-                // Reorder / delete categories; lives on the section it edits.
-                EditButton()
-                    .font(.subheadline.weight(.semibold))
-                    .textCase(nil)
-            }
-        } footer: {
-            Text("Each category is one compartment of your bookcase, in this order from the top left (up to 10).")
-        }
-    }
-
     private var remindersSection: some View {
         Section {
             Toggle("Daily reminder", isOn: $remindersEnabled)
@@ -194,32 +129,6 @@ struct SettingsScreen: View {
                 reminderMinutes = (parts.hour ?? 19) * 60 + (parts.minute ?? 0)
             }
         )
-    }
-
-    private func moveCategories(from source: IndexSet, to destination: Int) {
-        var reordered = categories
-        reordered.move(fromOffsets: source, toOffset: destination)
-        for (index, category) in reordered.enumerated() {
-            category.sortIndex = index
-        }
-        try? context.save()
-    }
-
-    private func deleteCategories(at offsets: IndexSet) {
-        var remaining = categories
-        for index in offsets.sorted(by: >) {
-            let category = categories[index]
-            if category.bookCount > 0 {
-                blockedDelete = category
-                continue
-            }
-            remaining.remove(at: index)
-            context.delete(category)
-        }
-        for (index, category) in remaining.enumerated() {
-            category.sortIndex = index
-        }
-        try? context.save()
     }
 
     private func reschedule(requestPermission: Bool) {

@@ -51,6 +51,20 @@ enum TextureFactory {
         return texture
     }
 
+    /// Subtle plaster texture for the walls, in the wall colour. One 5 × 3.2 m tile at 200 px per
+    /// metre is used for every wall; the side walls stretch it slightly, which the soft grain hides.
+    static func wall(hex: String) -> TextureResource? {
+        let key = "wall|\(hex)"
+        if let cached = cache[key] { return cached }
+        let ppm: CGFloat = 200
+        let size = CGSize(width: CGFloat(RoomFactory.roomWidth) * ppm, height: CGFloat(RoomFactory.roomHeight) * ppm)
+        let image = WallPainter.image(hex: hex, size: size, pixelsPerMeter: ppm)
+        guard let cgImage = image.cgImage else { return nil }
+        let texture = try? TextureResource.generate(from: cgImage, options: .init(semantic: .color))
+        cache[key] = texture
+        return texture
+    }
+
     private static var thumbnailCache: [String: UIImage] = [:]
 
     /// Small square preview of a floor (about 0.6 m of it) for the colour picker.

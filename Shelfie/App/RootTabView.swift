@@ -3,7 +3,7 @@ import SwiftUI
 
 struct RootTabView: View {
     enum TabID: Hashable {
-        case shelf, calendar, settings
+        case shelf, categories, calendar, settings
     }
 
     @Environment(\.modelContext) private var context
@@ -14,6 +14,9 @@ struct RootTabView: View {
         TabView(selection: $tab) {
             Tab("Bookshelf", systemImage: "books.vertical.fill", value: .shelf) {
                 BookshelfScreen()
+            }
+            Tab("Categories", systemImage: "square.grid.2x2.fill", value: .categories) {
+                CategoriesScreen()
             }
             Tab("Calendar", systemImage: "calendar", value: .calendar) {
                 CalendarScreen()
