@@ -31,6 +31,7 @@ struct BookshelfScreen: View {
     @AppStorage(Prefs.shelfColorKey) private var shelfID = RoomTheme.default.shelfID
     @AppStorage(Prefs.wallColorKey) private var wallID = RoomTheme.default.wallID
     @AppStorage(Prefs.floorColorKey) private var floorID = RoomTheme.default.floorID
+    @AppStorage(Prefs.bookcaseStyleKey) private var styleID = RoomTheme.default.styleID
 
     private var snapshot: ShelfSnapshot {
         ShelfSnapshot.make(categories: categories, books: books)
@@ -39,7 +40,7 @@ struct BookshelfScreen: View {
     /// Room colors are part of the Unlock; without it (e.g. after a refund) the default room shows.
     private var theme: RoomTheme {
         guard gate.isUnlocked else { return .default }
-        return RoomTheme(shelfID: shelfID, wallID: wallID, floorID: floorID)
+        return RoomTheme(shelfID: shelfID, wallID: wallID, floorID: floorID, styleID: styleID)
     }
 
     /// Text over the room follows the wall colour, not the system appearance: a white room
@@ -158,7 +159,7 @@ struct BookshelfScreen: View {
     private func shareCard(_ snapshot: ShelfSnapshot) -> ShelfShareCard {
         ShelfShareCard(
             snapshot: snapshot,
-            shelf: theme.shelf,
+            theme: theme,
             bookCount: books.count,
             readingCount: books.filter { $0.status == .reading }.count,
             finishedCount: books.filter { $0.status == .finished }.count,
