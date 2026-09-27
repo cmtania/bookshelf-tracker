@@ -43,6 +43,11 @@ struct CategoryStats {
 
     /// Where the category's compartment is on the bookcase, e.g. "Top shelf · left".
     static func position(ofIndex index: Int) -> String {
+        // Gallery boxes aren't a 2-column grid (rows hold 1 to 3 boxes), so just number them.
+        let style = BookcaseStyle(rawValue: UserDefaults.standard.string(forKey: Prefs.bookcaseStyleKey) ?? "") ?? .classic
+        if style == .gallery {
+            return "Box \(index + 1)"
+        }
         let rows = ["Top shelf", "2nd shelf", "Middle shelf", "4th shelf", "Bottom shelf"]
         let row = index / BookcaseGeometry.columns
         guard row < rows.count else { return "Not on the shelf" }
