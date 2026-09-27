@@ -31,10 +31,13 @@ struct RoomTheme: Equatable {
     var shelfID: String
     var wallID: String
     var floorID: String
+    /// The bookcase design (`BookcaseStyle` raw value). Classic unless Pro picks another.
+    var styleID: String = BookcaseStyle.classic.rawValue
 
     var shelf: Preset { Self.resolve(shelfID, in: Self.shelfPresets) }
     var wall: Preset { Self.resolve(wallID, in: Self.wallPresets) }
     var floor: Preset { Self.resolve(floorID, in: Self.floorPresets) }
+    var style: BookcaseStyle { BookcaseStyle(rawValue: styleID) ?? .classic }
 
     static let `default` = RoomTheme(shelfID: shelfPresets[0].id, wallID: wallPresets[0].id, floorID: floorPresets[0].id)
 
