@@ -1,51 +1,122 @@
 import SwiftUI
 
-/// Pick the bookcase, wall and floor looks: a Classic row of plain colours and a Premium row of
-/// lacquers, metals, designer wall colours and patterned floors. Opened as a short sheet over the
-/// Bookshelf tab (so the 3D room updates live behind it) and from Settings. Part of the Unlock.
+/// Pick the bookcase, wall and floor looks. A dropdown chooses the part; below it are that part's
+/// Classic and Premium swatches. Designed to fit a half-height sheet over the Bookshelf tab, where the
+/// camera pulls back to show the whole room above it. Also pushed from Settings. Part of Shelfie Pro.
 struct RoomThemeEditor: View {
+    enum Part: String, CaseIterable, Identifiable {
+        case bookcase = "Bookcase"
+        case walls = "Walls"
+        case floor = "Floor"
+
+        var id: Self { self }
+
+        var symbol: String {
+            switch self {
+            case .bookcase: "books.vertical.fill"
+            case .walls: "square.fill"
+            case .floor: "square.grid.3x3.fill"
+            }
+        }
+    }
+
     @AppStorage(Prefs.shelfColorKey) private var shelfID = RoomTheme.default.shelfID
     @AppStorage(Prefs.wallColorKey) private var wallID = RoomTheme.default.wallID
     @AppStorage(Prefs.floorColorKey) private var floorID = RoomTheme.default.floorID
+
+    @State private var part: Part = .bookcase
 
     private var isDefault: Bool {
         RoomTheme(shelfID: shelfID, wallID: wallID, floorID: floorID) == .default
     }
 
-    var body: some View {
-        Form {
-            partSection("Bookcase", presets: RoomTheme.shelfPresets, kind: .shelf, selection: $shelfID)
-            partSection("Walls", presets: RoomTheme.wallPresets, kind: .wall, selection: $wallID)
-            partSection("Floor", presets: RoomTheme.floorPresets, kind: .floor, selection: $floorID)
-            Section {
-                Button("Reset to default colors") {
-                    shelfID = RoomTheme.default.shelfID
-                    wallID = RoomTheme.default.wallID
-                    floorID = RoomTheme.default.floorID
-                }
-                .disabled(isDefault)
-            }
+    private var presets: [RoomTheme.Preset] {
+        switch part {
+        case .bookcase: RoomTheme.shelfPresets
+        case .walls: RoomTheme.wallPresets
+        case .floor: RoomTheme.floorPresets
         }
     }
 
-    private func partSection(_ title: String, presets: [RoomTheme.Preset], kind: Swatch.Kind, selection: Binding<String>) -> some View {
-        Section {
-            VStack(alignment: .leading, spacing: 10) {
+    private var selection: Binding<String> {
+        switch part {
+        case .bookcase: $shelfID
+        case .walls: $wallID
+        case .floor: $floorID
+        }
+    }
+
+    private var kind: Swatch.Kind {
+        switch part {
+        case .bookcase: .shelf
+        case .walls: .wall
+        case .floor: .floor
+        }
+    }
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 14) {
+                HStack(spacing: 12) {
+                    partMenu
+                    Spacer(minLength: 8)
+                    Text(RoomTheme.resolve(selection.wrappedValue, in: presets).name)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .contentTransition(.opacity)
+                }
+
                 rowLabel("Classic")
                 PresetSwatchRow(presets: presets.filter { !$0.isPremium }, kind: kind, selection: selection)
                 rowLabel("Premium", systemImage: "sparkles")
                 PresetSwatchRow(presets: presets.filter(\.isPremium), kind: kind, selection: selection)
+
+                Button("Reset to default colors") {
+                    withAnimation(.snappy) {
+                        shelfID = RoomTheme.default.shelfID
+                        wallID = RoomTheme.default.wallID
+                        floorID = RoomTheme.default.floorID
+                    }
+                }
+                .font(.subheadline.weight(.semibold))
+                .disabled(isDefault)
+                .padding(.top, 4)
             }
-            .padding(.vertical, 4)
-        } header: {
-            HStack {
-                Text(title)
-                Spacer()
-                Text(RoomTheme.resolve(selection.wrappedValue, in: presets).name)
-                    .textCase(nil)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 12)
+            // Swatch rows swap in place when the part changes.
+            .id(part)
+            .transition(.opacity)
+        }
+        .scrollBounceBehavior(.basedOnSize)
+        .animation(.snappy, value: part)
+    }
+
+    /// Dropdown for which part of the room to color.
+    private var partMenu: some View {
+        Menu {
+            Picker("Part of the room", selection: $part) {
+                ForEach(Part.allCases) { item in
+                    Label(item.rawValue, systemImage: item.symbol).tag(item)
+                }
+            }
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: part.symbol)
+                    .foregroundStyle(Color.accentColor)
+                Text(part.rawValue)
+                    .font(.headline)
+                    .foregroundStyle(.primary)
+                Image(systemName: "chevron.up.chevron.down")
+                    .font(.caption.weight(.bold))
                     .foregroundStyle(.secondary)
             }
+            .padding(.horizontal, 16)
+            .frame(minHeight: 44)
+            .glassEffect(.regular.interactive(), in: .capsule)
         }
+        .accessibilityLabel("Part of the room: \(part.rawValue)")
     }
 
     private func rowLabel(_ text: String, systemImage: String? = nil) -> some View {
@@ -76,7 +147,7 @@ struct PresetSwatchRow: View {
                     } label: {
                         VStack(spacing: 6) {
                             Swatch(preset: preset, kind: kind)
-                                .frame(width: 40, height: 40)
+                                .frame(width: 44, height: 44)
                                 .overlay {
                                     if isSelected {
                                         Image(systemName: "checkmark")
@@ -92,7 +163,7 @@ struct PresetSwatchRow: View {
                                 .foregroundStyle(isSelected ? .primary : .secondary)
                                 .lineLimit(1)
                         }
-                        .frame(minWidth: 56)
+                        .frame(minWidth: 60)
                         .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
@@ -102,6 +173,7 @@ struct PresetSwatchRow: View {
             }
             .padding(.vertical, 2)
         }
+        .scrollClipDisabled()
     }
 }
 
