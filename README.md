@@ -16,7 +16,7 @@ A reading tracker for iPhone. Your books sit in a real 3D bookcase in a room you
 - **Share your shelf:** a 1080 × 1350 picture of the bookcase alone (no room), made in 2D from the same layout.
 - **Reminders:** local notifications only. There's a daily reminder, plus a "streak at risk" alert at 8 PM.
 - **Onboarding:** 4 skippable pages on first launch (welcome, name your 3 shelves, logging and streaks, reminders). It has no paywall.
-- **Settings:** Pro status and management, room colors, reminders, **Reset all data** (which brings back onboarding), contact support, help and privacy.
+- **Settings:** Pro status and management, reminders, **Reset all data** (type CONFIRM; it brings back onboarding), and **About Shelfie**. The About sheet shows the logo, name, version, Help & FAQ, Privacy Policy, Terms of Service and contact support. Room colors are only on the Bookshelf tab (the paintbrush).
 - **Money:** free for up to 10 books in 3 categories. **Shelfie Pro** gives unlimited books, all 10 compartments and room colors. It comes as **Pro Lifetime** (one-time, ₱249) or **Pro Monthly** (auto-renewing, ₱59/month). The paywall pre-selects Lifetime and shows how many months it takes to pay for itself.
 
 It needs no account, no server and no third-party SDKs. All data stays on the device.
