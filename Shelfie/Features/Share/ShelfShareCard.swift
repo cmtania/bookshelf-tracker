@@ -119,10 +119,14 @@ private struct BookcaseDrawing: View {
                 for entry in layout.entries {
                     drawBook(entry, layout: layout, origin: origin, in: &context, rect: rect)
                 }
+            }
 
-                if let name = compartment.name {
-                    drawPlate(name, hidden: layout.hiddenCount, origin: origin, geometry: g, in: &context, rect: rect)
-                }
+            // Labels last, in a second pass: each one hangs down from its shelf edge into the
+            // compartment below, so drawing it before that compartment would paint over its lower half.
+            for compartment in snapshot.compartments {
+                guard let name = compartment.name else { continue }
+                let layout = CompartmentLayout(compartment, geometry: g)
+                drawPlate(name, hidden: layout.hiddenCount, origin: g.origin(of: compartment.index), geometry: g, in: &context, rect: rect)
             }
         }
     }
@@ -181,11 +185,22 @@ private struct BookcaseDrawing: View {
         let plate = rect(origin.x + g.innerWidth / 2 - width / 2, origin.y - height, width, height)
         context.fill(Path(roundedRect: plate, cornerRadius: plate.height * 0.25), with: .color(.white))
         let label = hidden > 0 ? "\(name) · +\(hidden)" : name
-        context.draw(
-            Text(label)
-                .font(.system(size: plate.height * 0.58, weight: .bold, design: .rounded))
-                .foregroundStyle(Color(hex: "#2B2B2B")),
-            in: plate.insetBy(dx: plate.height * 0.3, dy: 0)
-        )
+        // One line, centred on the plate, shrunk to fit if the name is long, so it's never cut.
+        let bounds = plate.insetBy(dx: plate.height * 0.3, dy: 0)
+        var fontSize = plate.height * 0.58
+        var text = context.resolve(labelText(label, size: fontSize))
+        let unlimited = CGSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude)
+        let width = text.measure(in: unlimited).width
+        if width > bounds.width {
+            fontSize *= max(0.5, bounds.width / width)
+            text = context.resolve(labelText(label, size: fontSize))
+        }
+        context.draw(text, at: CGPoint(x: plate.midX, y: plate.midY), anchor: .center)
+    }
+
+    private func labelText(_ label: String, size: CGFloat) -> Text {
+        Text(label)
+            .font(.system(size: size, weight: .bold, design: .rounded))
+            .foregroundStyle(Color(hex: "#2B2B2B"))
     }
 }
