@@ -1,12 +1,15 @@
 import SwiftData
 import SwiftUI
 
-/// Month grid with a dot per book read that day, plus the day's sessions.
+/// Reading calendar: a slim stats strip, then the current week (tap or swipe down to see the
+/// whole month), then the sessions logged on the selected day, which get most of the screen.
 struct CalendarScreen: View {
     @Query(sort: \ReadingSession.date, order: .reverse) private var sessions: [ReadingSession]
 
-    @State private var month = CalendarMath.startOfMonth(.now)
+    /// Any day inside the visible week (collapsed) or month (expanded).
+    @State private var anchor = Calendar.current.startOfDay(for: .now)
     @State private var selectedDay = Calendar.current.startOfDay(for: .now)
+    @State private var expanded = false
 
     private let calendar = Calendar.current
 
@@ -14,22 +17,9 @@ struct CalendarScreen: View {
         let byDay = Dictionary(grouping: sessions) { calendar.startOfDay(for: $0.date) }
         NavigationStack {
             ScrollView {
-                VStack(spacing: 16) {
-                    HStack(spacing: 12) {
-                        StatCard(
-                            title: "Pages in \(month.formatted(.dateTime.month(.wide)))",
-                            value: "\(pages(inMonthOf: month))",
-                            systemImage: "book.fill",
-                            tint: .accentColor
-                        )
-                        StatCard(
-                            title: "Reading streak",
-                            value: "\(StreakCalculator().currentStreak(sessions.map(\.date))) days",
-                            systemImage: "flame.fill",
-                            tint: .orange
-                        )
-                    }
-                    monthCard(byDay)
+                VStack(spacing: 12) {
+                    statsStrip
+                    calendarCard(byDay)
                     dayList(byDay[selectedDay] ?? [])
                 }
                 .padding(16)
@@ -39,27 +29,85 @@ struct CalendarScreen: View {
         }
     }
 
-    // MARK: Month
+    // MARK: Stats
 
-    private func monthCard(_ byDay: [Date: [ReadingSession]]) -> some View {
-        VStack(spacing: 12) {
-            HStack {
+    /// One slim row instead of two tall cards: pages in the visible week/month, and the streak.
+    private var statsStrip: some View {
+        let streak = StreakCalculator().currentStreak(sessions.map(\.date))
+        return HStack(spacing: 0) {
+            stat(
+                systemImage: "book.fill",
+                tint: .accentColor,
+                value: "\(pagesInVisiblePeriod)",
+                label: expanded ? "pages in \(anchor.formatted(.dateTime.month(.wide)))" : "pages this week"
+            )
+            Divider().frame(height: 28)
+            stat(
+                systemImage: "flame.fill",
+                tint: .orange,
+                value: "\(streak)",
+                label: "day streak"
+            )
+        }
+        .padding(.vertical, 10)
+        .background(RoundedRectangle(cornerRadius: 16).fill(Color(.secondarySystemGroupedBackground)))
+    }
+
+    private func stat(systemImage: String, tint: Color, value: String, label: String) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: systemImage)
+                .font(.subheadline)
+                .foregroundStyle(tint)
+            Text(value)
+                .font(.headline.monospacedDigit())
+                .contentTransition(.numericText())
+            Text(label)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+        }
+        .frame(maxWidth: .infinity)
+        .accessibilityElement(children: .combine)
+    }
+
+    // MARK: Week / month
+
+    private func calendarCard(_ byDay: [Date: [ReadingSession]]) -> some View {
+        VStack(spacing: 8) {
+            HStack(spacing: 4) {
                 Button {
-                    shiftMonth(-1)
+                    shift(-1)
                 } label: {
                     Image(systemName: "chevron.left").frame(width: 44, height: 44)
                 }
-                .accessibilityLabel("Previous month")
-                Spacer()
-                Text(month.formatted(.dateTime.month(.wide).year()))
-                    .font(.headline)
-                Spacer()
+                .accessibilityLabel(expanded ? "Previous month" : "Previous week")
+
                 Button {
-                    shiftMonth(1)
+                    toggleExpanded()
+                } label: {
+                    HStack(spacing: 6) {
+                        Text(periodTitle)
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+                        Image(systemName: "chevron.down")
+                            .font(.caption.weight(.bold))
+                            .foregroundStyle(.secondary)
+                            .rotationEffect(.degrees(expanded ? 180 : 0))
+                    }
+                    .frame(maxWidth: .infinity, minHeight: 44)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(periodTitle)
+                .accessibilityHint(expanded ? "Shows only this week" : "Shows the whole month")
+
+                Button {
+                    shift(1)
                 } label: {
                     Image(systemName: "chevron.right").frame(width: 44, height: 44)
                 }
-                .accessibilityLabel("Next month")
+                .accessibilityLabel(expanded ? "Next month" : "Next week")
             }
 
             let columns = Array(repeating: GridItem(.flexible(), spacing: 4), count: 7)
@@ -70,7 +118,7 @@ struct CalendarScreen: View {
                         .foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity)
                 }
-                ForEach(Array(CalendarMath.monthCells(for: month, calendar: calendar).enumerated()), id: \.offset) { _, day in
+                ForEach(Array(visibleCells.enumerated()), id: \.offset) { _, day in
                     if let day {
                         dayCell(day, colors: colors(byDay[day] ?? []))
                     } else {
@@ -78,9 +126,68 @@ struct CalendarScreen: View {
                     }
                 }
             }
+
+            // Grab handle: another way to expand / collapse.
+            Button {
+                toggleExpanded()
+            } label: {
+                Capsule()
+                    .fill(Color.secondary.opacity(0.35))
+                    .frame(width: 36, height: 5)
+                    .frame(maxWidth: .infinity, minHeight: 20)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(expanded ? "Show this week only" : "Show the whole month")
         }
-        .padding(16)
+        .padding(.horizontal, 12)
+        .padding(.top, 4)
+        .padding(.bottom, 2)
         .background(RoundedRectangle(cornerRadius: 20).fill(Color(.secondarySystemGroupedBackground)))
+        // Swipe down on the calendar to open the month, up to go back to the week.
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 20)
+                .onEnded { value in
+                    let vertical = value.translation.height
+                    guard abs(vertical) > abs(value.translation.width) else { return }
+                    if vertical > 0, !expanded { toggleExpanded() }
+                    if vertical < 0, expanded { toggleExpanded() }
+                }
+        )
+    }
+
+    private var visibleCells: [Date?] {
+        expanded
+            ? CalendarMath.monthCells(for: anchor, calendar: calendar)
+            : CalendarMath.weekDays(containing: anchor, calendar: calendar).map { Optional($0) }
+    }
+
+    private var periodTitle: String {
+        if expanded {
+            return anchor.formatted(.dateTime.month(.wide).year())
+        }
+        let week = CalendarMath.weekDays(containing: anchor, calendar: calendar)
+        guard let first = week.first, let last = week.last else { return "" }
+        if week.contains(where: { calendar.isDateInToday($0) }) {
+            return "This week"
+        }
+        return "\(first.formatted(.dateTime.month(.abbreviated).day())) – \(last.formatted(.dateTime.month(.abbreviated).day()))"
+    }
+
+    private func toggleExpanded() {
+        withAnimation(.snappy) {
+            // Keep the selected day in view when switching between week and month.
+            anchor = selectedDay
+            expanded.toggle()
+        }
+    }
+
+    private func shift(_ delta: Int) {
+        let component: Calendar.Component = expanded ? .month : .weekOfYear
+        guard let next = calendar.date(byAdding: component, value: delta, to: anchor) else { return }
+        withAnimation(.snappy) {
+            anchor = calendar.startOfDay(for: next)
+        }
     }
 
     private func dayCell(_ day: Date, colors: [String]) -> some View {
@@ -169,41 +276,11 @@ struct CalendarScreen: View {
         return result
     }
 
-    private func pages(inMonthOf date: Date) -> Int {
-        sessions
-            .filter { calendar.isDate($0.date, equalTo: date, toGranularity: .month) }
+    /// Pages read in the visible week (collapsed) or month (expanded).
+    private var pagesInVisiblePeriod: Int {
+        let granularity: Calendar.Component = expanded ? .month : .weekOfYear
+        return sessions
+            .filter { calendar.isDate($0.date, equalTo: anchor, toGranularity: granularity) }
             .reduce(0) { $0 + $1.pagesRead }
-    }
-
-    private func shiftMonth(_ delta: Int) {
-        if let next = calendar.date(byAdding: .month, value: delta, to: month) {
-            month = CalendarMath.startOfMonth(next, calendar: calendar)
-        }
-    }
-}
-
-private struct StatCard: View {
-    let title: String
-    let value: String
-    let systemImage: String
-    let tint: Color
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Image(systemName: systemImage)
-                .foregroundStyle(tint)
-            Text(value)
-                .font(.title2.bold())
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
-            Text(title)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .lineLimit(2)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(14)
-        .background(RoundedRectangle(cornerRadius: 16).fill(Color(.secondarySystemGroupedBackground)))
-        .accessibilityElement(children: .combine)
     }
 }

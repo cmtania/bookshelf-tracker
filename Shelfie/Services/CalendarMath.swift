@@ -18,6 +18,14 @@ enum CalendarMath {
         return cells
     }
 
+    /// The seven days of the week containing `date`, starting at the locale's first weekday.
+    static func weekDays(containing date: Date, calendar: Calendar = .current) -> [Date] {
+        let start = calendar.dateInterval(of: .weekOfYear, for: date)?.start ?? calendar.startOfDay(for: date)
+        return (0..<7).compactMap { offset in
+            calendar.date(byAdding: .day, value: offset, to: start).map { calendar.startOfDay(for: $0) }
+        }
+    }
+
     /// Very short weekday symbols, starting at the locale's first weekday.
     static func weekdaySymbols(calendar: Calendar = .current) -> [String] {
         let symbols = calendar.veryShortStandaloneWeekdaySymbols
