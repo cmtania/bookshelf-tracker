@@ -11,6 +11,7 @@ struct SettingsScreen: View {
     @AppStorage(Prefs.streakAlertEnabledKey) private var streakAlertEnabled = true
 
     @State private var showingPaywall = false
+    @State private var managingSubscription = false
 
     // Categories are managed in their own tab (CategoriesScreen).
     var body: some View {
@@ -41,25 +42,59 @@ struct SettingsScreen: View {
 
     private var unlockSection: some View {
         Section {
-            if gate.isUnlocked {
-                Label("Shelfie is unlocked. Thank you!", systemImage: "checkmark.seal.fill")
+            switch gate.activePlan {
+            case .lifetime:
+                Label("Shelfie Pro · Lifetime. Thank you!", systemImage: "checkmark.seal.fill")
                     .foregroundStyle(Color.accentColor)
-            } else {
+                if gate.hasMonthlySubscription {
+                    // Bought Lifetime while subscribed: the subscription keeps renewing until cancelled.
+                    Button {
+                        managingSubscription = true
+                    } label: {
+                        Label("You still have a monthly subscription. Cancel it here.", systemImage: "exclamationmark.circle")
+                    }
+                }
+            case .monthly:
+                Label("Shelfie Pro · Monthly", systemImage: "checkmark.seal.fill")
+                    .foregroundStyle(Color.accentColor)
                 Button {
                     showingPaywall = true
                 } label: {
                     HStack {
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("Unlock Shelfie")
+                            Text("Switch to Lifetime")
                                 .font(.headline)
                                 .foregroundStyle(.primary)
-                            Text("Unlimited books · all 10 shelves · room colors · pay once")
+                            Text("Pay once and stop paying monthly")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
                         Spacer()
-                        if let price = gate.product?.displayPrice {
+                        if let price = gate.lifetime?.displayPrice {
                             Text(price)
+                                .font(.subheadline.weight(.semibold))
+                        }
+                    }
+                }
+                Button("Manage subscription") {
+                    managingSubscription = true
+                }
+            case nil:
+                Button {
+                    showingPaywall = true
+                } label: {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Get Shelfie Pro")
+                                .font(.headline)
+                                .foregroundStyle(.primary)
+                            Text("Unlimited books · all 10 shelves · room colors")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                        if let price = gate.lifetime?.displayPrice {
+                            Text("\(price) once")
                                 .font(.subheadline.weight(.semibold))
                         }
                     }
@@ -69,9 +104,10 @@ struct SettingsScreen: View {
                 }
             }
         }
+        .manageSubscriptionsSheet(isPresented: $managingSubscription)
     }
 
-    /// Room colors are part of the one-time Unlock.
+    /// Room colors are part of Shelfie Pro (Lifetime or Monthly).
     private var appearanceSection: some View {
         Section("Appearance") {
             if gate.isUnlocked {
@@ -112,6 +148,10 @@ struct SettingsScreen: View {
 
     private var aboutSection: some View {
         Section("About") {
+            Link(destination: AppLinks.supportEmail) {
+                LabeledContent("Contact support", value: "tania.dev.ph@gmail.com")
+            }
+            Link("Help & FAQ", destination: AppLinks.support)
             Link("Privacy policy", destination: AppLinks.privacy)
             LabeledContent("Version", value: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0")
         }
@@ -141,7 +181,7 @@ struct SettingsScreen: View {
     }
 }
 
-/// Small "PRO" tag for features included in the Unlock.
+/// Small "PRO" tag for features included in Shelfie Pro.
 struct ProBadge: View {
     var body: some View {
         Text("PRO")
@@ -150,11 +190,14 @@ struct ProBadge: View {
             .padding(.vertical, 2)
             .foregroundStyle(.white)
             .background(Capsule().fill(Color.accentColor))
-            .accessibilityLabel("Included with Unlock")
+            .accessibilityLabel("Included with Shelfie Pro")
     }
 }
 
 enum AppLinks {
-    static let privacy = URL(string: "https://github.com/cmtania/bookshelf-tracker/blob/main/PRIVACY.md")!
+    static let privacy = URL(string: "https://cmtania.github.io/bookshelf-tracker-docs/privacy.html")!
+    static let support = URL(string: "https://cmtania.github.io/bookshelf-tracker-docs/support.html")!
+    /// Apple's standard EULA ("Terms of Use"), which App Review expects next to subscriptions.
     static let terms = URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!
+    static let supportEmail = URL(string: "mailto:tania.dev.ph@gmail.com?subject=Shelfie%20support")!
 }

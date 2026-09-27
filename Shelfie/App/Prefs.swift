@@ -7,6 +7,8 @@ enum Prefs {
     static let reminderMinutesKey = "reminderMinutes"
     static let streakAlertEnabledKey = "streakAlertEnabled"
     static let unlockedCacheKey = "unlockedCache"
+    /// "lifetime" or "monthly" while Shelfie Pro is active (see UnlockGate).
+    static let planCacheKey = "proPlanCache"
     static let didSeedKey = "didSeedCategories"
     static let shelfColorKey = "theme.shelf"
     static let wallColorKey = "theme.wall"

@@ -121,7 +121,7 @@ struct CategoriesScreen: View {
     private var footerText: String {
         var text = "Each category is one compartment of your bookcase, filled from the top left. Drag in Edit mode to rearrange the shelf."
         if !gate.isUnlocked {
-            text += " Free: \(min(categories.count, UnlockGate.freeCategoryLimit)) of \(UnlockGate.freeCategoryLimit) categories. Unlock for all \(UnlockGate.maxCategories)."
+            text += " Free: \(min(categories.count, UnlockGate.freeCategoryLimit)) of \(UnlockGate.freeCategoryLimit) categories. Get Pro for all \(UnlockGate.maxCategories)."
         }
         return text
     }

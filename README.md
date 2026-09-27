@@ -7,7 +7,7 @@ A reading tracker for iPhone. Your books sit in a real 3D bookcase in a sunny ro
 - **Streaks:** each book has its own streak. It counts the days in a row with at least one logged reading session. There's also an overall streak.
 - **Calendar:** a month grid with one dot per book read that day. Tap a day to see its sessions.
 - **Reminders:** local notifications only. There's a daily reminder, and a "streak at risk" alert at 8 PM.
-- **Money:** free for up to 10 books in 3 categories. A one-time **Unlock** purchase (a non-consumable in-app purchase) gives unlimited books and all 10 compartments.
+- **Money:** free for up to 10 books in 3 categories. **Shelfie Pro** gives unlimited books, all 10 compartments and room colors. It comes as **Pro Lifetime** (one-time purchase, ₱249) or **Pro Monthly** (auto-renewing subscription, ₱59/month). The paywall pre-selects Lifetime and shows how many months it takes to pay for itself.
 
 It needs no account, no server and no third-party SDKs. All data stays on the device.
 
@@ -34,11 +34,25 @@ open Shelfie.xcodeproj
 
 `Shelfie.xcodeproj` is generated and git-ignored. After you add or move files, run `xcodegen generate` again.
 
-## In-app purchase
+## In-app purchases (Shelfie Pro)
 
-- **Product ID:** `com.cmtania.shelfie.unlock` (non-consumable)
-- **Local testing:** the scheme runs with `Shelfie/Resources/Products.storekit`, so purchases work in the simulator with no App Store Connect setup. If Xcode says the file is invalid, create a new StoreKit Configuration File with that product ID and point the scheme at it (Edit Scheme → Run → Options).
-- **Before release:** create the same product in App Store Connect. The suggested price is ₱249 on the PH storefront, about $4.99 in the US.
+| Plan | Product ID | Type | Price (PH / US) |
+|---|---|---|---|
+| Pro Lifetime | `com.cmtania.shelfie.unlock` | Non-consumable | ₱249 / $4.99 |
+| Pro Monthly | `com.cmtania.shelfie.pro.monthly` | Auto-renewable subscription, 1 month, group "Shelfie Pro" | ₱59 / $0.99 |
+
+- **How it works:** both plans unlock the same features (`UnlockGate`). Lifetime wins if someone has both.
+- **Where the status comes from:** it's read from StoreKit's current entitlements at launch, whenever the app comes to the foreground, and on every `Transaction.updates` event. That covers renewals, expiries and refunds.
+- **Upgrading:** when a monthly subscriber buys Lifetime, the app asks them to cancel the subscription, which opens the system Manage Subscriptions sheet. Settings keeps showing a reminder while both are active.
+- **Local testing:** the scheme runs with `Shelfie/Resources/Products.storekit`, which contains both products. Purchases work in the simulator with no App Store Connect setup.
+  - To test renewals and expiry fast, open the `.storekit` file in Xcode and set **Editor → Subscription Renewal Rate** to "Monthly renewal every 30 seconds".
+  - If Xcode says the file is invalid, create a new StoreKit Configuration File with both product IDs and point the scheme at it (Edit Scheme → Run → Options).
+- **Before release**, in App Store Connect:
+  1. Create the non-consumable `com.cmtania.shelfie.unlock` at ₱249.
+  2. Create the subscription group **Shelfie Pro** containing the 1-month subscription `com.cmtania.shelfie.pro.monthly` at ₱59.
+  3. Add a display name, description and review screenshot (the paywall) to each.
+  4. In the app's App Store description, include links to the Terms of Use (Apple's standard EULA) and the Privacy Policy, because App Review requires them for subscriptions.
+  5. Attach both products to the first app version you submit.
 
 ## Project layout
 

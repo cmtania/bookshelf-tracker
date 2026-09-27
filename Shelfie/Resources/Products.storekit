@@ -10,13 +10,13 @@
       "internalID" : "6740000001",
       "localizations" : [
         {
-          "description" : "Unlimited books and all 10 bookcase compartments. One-time purchase.",
-          "displayName" : "Shelfie Unlock",
+          "description" : "Shelfie Pro forever: unlimited books, all 10 compartments and room colors. One-time purchase.",
+          "displayName" : "Shelfie Pro Lifetime",
           "locale" : "en_US"
         }
       ],
       "productID" : "com.cmtania.shelfie.unlock",
-      "referenceName" : "Shelfie Unlock",
+      "referenceName" : "Shelfie Pro Lifetime",
       "type" : "NonConsumable"
     }
   ],
@@ -29,7 +29,40 @@
     ]
   },
   "subscriptionGroups" : [
+    {
+      "id" : "21500001",
+      "localizations" : [
 
+      ],
+      "name" : "Shelfie Pro",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "0.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6740000002",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Shelfie Pro every month: unlimited books, all 10 compartments and room colors.",
+              "displayName" : "Shelfie Pro Monthly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.cmtania.shelfie.pro.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Shelfie Pro Monthly",
+          "subscriptionGroupID" : "21500001",
+          "type" : "RecurringSubscription"
+        }
+      ]
+    }
   ],
   "version" : {
     "major" : 3,

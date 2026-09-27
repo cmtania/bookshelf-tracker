@@ -2,26 +2,52 @@ import Foundation
 import Observation
 import StoreKit
 
-/// The single place that knows whether the one-time Unlock was bought, and the free limits.
+/// How someone has Shelfie Pro. Both plans unlock exactly the same features.
+enum ProPlan: String {
+    /// One-time, non-consumable purchase. Yours forever.
+    case lifetime
+    /// Auto-renewing monthly subscription.
+    case monthly
+}
+
+/// The single place that knows whether Shelfie Pro is active (lifetime or monthly), and the free limits.
 @MainActor
 @Observable
 final class UnlockGate {
-    static let productID = "com.cmtania.shelfie.unlock"
+    /// Kept from v1.0 so the existing lifetime product (and anyone who bought it) carries on working.
+    static let lifetimeID = "com.cmtania.shelfie.unlock"
+    static let monthlyID = "com.cmtania.shelfie.pro.monthly"
+    static let productIDs = [lifetimeID, monthlyID]
+
     static let freeBookLimit = 10
     static let freeCategoryLimit = 3
-    /// The bookcase has 10 compartments, so this is a hard cap even when unlocked.
+    /// The bookcase has 10 compartments, so this is a hard cap even with Pro.
     static let maxCategories = 10
 
-    private(set) var isUnlocked: Bool
-    private(set) var product: Product?
+    /// The plan that gives Pro right now. Lifetime wins if someone has both.
+    private(set) var activePlan: ProPlan?
+    /// A monthly subscription is still active, even if Lifetime was bought later
+    /// (so Settings can remind the person to cancel it).
+    private(set) var hasMonthlySubscription = false
+    private(set) var lifetime: Product?
+    private(set) var monthly: Product?
     private(set) var isPurchasing = false
     var lastError: String?
+
+    var isUnlocked: Bool { activePlan != nil }
 
     @ObservationIgnored private var updatesTask: Task<Void, Never>?
 
     init() {
-        isUnlocked = UserDefaults.standard.bool(forKey: Prefs.unlockedCacheKey)
+        let defaults = UserDefaults.standard
+        if let cached = defaults.string(forKey: Prefs.planCacheKey), let plan = ProPlan(rawValue: cached) {
+            activePlan = plan
+        } else if defaults.bool(forKey: Prefs.unlockedCacheKey) {
+            // Cache from before subscriptions existed: that was the lifetime Unlock.
+            activePlan = .lifetime
+        }
         updatesTask = Task { [weak self] in
+            // Renewals, expiries, refunds and purchases made on other devices arrive here.
             for await result in Transaction.updates {
                 if case .verified(let transaction) = result {
                     await transaction.finish()
@@ -31,7 +57,7 @@ final class UnlockGate {
         }
         Task {
             await refresh()
-            await loadProduct()
+            await loadProducts()
         }
     }
 
@@ -44,28 +70,44 @@ final class UnlockGate {
         return isUnlocked || currentCount < Self.freeCategoryLimit
     }
 
-    func loadProduct() async {
+    /// Months of Monthly that cost as much as Lifetime, rounded up: 249 / 59 = 4.2, so 5.
+    /// Worked out from the live App Store prices, so it's right in every country.
+    var lifetimePaybackMonths: Int? {
+        guard let lifetime, let monthly, monthly.price > 0 else { return nil }
+        let ratio = NSDecimalNumber(decimal: lifetime.price / monthly.price).doubleValue
+        return Int(ratio.rounded(.up))
+    }
+
+    func loadProducts() async {
         do {
-            product = try await Product.products(for: [Self.productID]).first
+            let products = try await Product.products(for: Self.productIDs)
+            lifetime = products.first { $0.id == Self.lifetimeID }
+            monthly = products.first { $0.id == Self.monthlyID }
         } catch {
-            product = nil
+            // Offline or not set up yet; the paywall shows "Loading price…" and retries.
         }
     }
 
     func refresh() async {
-        var unlocked = false
+        var ownsLifetime = false
+        var subscribed = false
         for await result in Transaction.currentEntitlements {
-            if case .verified(let transaction) = result,
-               transaction.productID == Self.productID,
-               transaction.revocationDate == nil {
-                unlocked = true
+            guard case .verified(let transaction) = result, transaction.revocationDate == nil else { continue }
+            if let expiry = transaction.expirationDate, expiry < .now { continue }
+            switch transaction.productID {
+            case Self.lifetimeID: ownsLifetime = true
+            case Self.monthlyID: subscribed = true
+            default: break
             }
         }
-        setUnlocked(unlocked)
+        hasMonthlySubscription = subscribed
+        setPlan(ownsLifetime ? .lifetime : (subscribed ? .monthly : nil))
     }
 
-    func purchase() async {
-        guard let product, !isPurchasing else { return }
+    /// Returns true when the purchase went through.
+    @discardableResult
+    func purchase(_ product: Product) async -> Bool {
+        guard !isPurchasing else { return false }
         isPurchasing = true
         defer { isPurchasing = false }
         do {
@@ -74,10 +116,10 @@ final class UnlockGate {
             case .success(let verification):
                 if case .verified(let transaction) = verification {
                     await transaction.finish()
-                    setUnlocked(true)
-                } else {
-                    lastError = "The purchase couldn't be verified. Please try Restore."
+                    await refresh()
+                    return true
                 }
+                lastError = "The purchase couldn't be verified. Please try Restore."
             case .userCancelled, .pending:
                 break
             @unknown default:
@@ -86,6 +128,7 @@ final class UnlockGate {
         } catch {
             lastError = error.localizedDescription
         }
+        return false
     }
 
     func restore() async {
@@ -97,8 +140,10 @@ final class UnlockGate {
         await refresh()
     }
 
-    private func setUnlocked(_ value: Bool) {
-        isUnlocked = value
-        UserDefaults.standard.set(value, forKey: Prefs.unlockedCacheKey)
+    private func setPlan(_ plan: ProPlan?) {
+        activePlan = plan
+        let defaults = UserDefaults.standard
+        defaults.set(plan?.rawValue, forKey: Prefs.planCacheKey)
+        defaults.set(plan != nil, forKey: Prefs.unlockedCacheKey)
     }
 }

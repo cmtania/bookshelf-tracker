@@ -2,9 +2,17 @@ import StoreKit
 import SwiftUI
 
 /// Shown only when the user reaches a free limit, or from Settings. Always closable.
+/// Two ways to get Shelfie Pro: Lifetime (pre-selected, the better deal) or Monthly.
 struct PaywallView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(UnlockGate.self) private var gate
+
+    @State private var selected: ProPlan = .lifetime
+    @State private var remindToCancel = false
+    @State private var managingSubscription = false
+
+    /// Monthly subscribers only see Lifetime here: the upgrade.
+    private var isUpgrade: Bool { gate.activePlan == .monthly }
 
     var body: some View {
         NavigationStack {
@@ -13,25 +21,34 @@ struct PaywallView: View {
                     Image("Logo")
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 96)
-                        .padding(.top, 12)
+                        .frame(width: 88)
+                        .padding(.top, 8)
                         .accessibilityHidden(true)
-                    Text("Unlock your whole library")
+                    Text(isUpgrade ? "Keep Pro forever" : "Get Shelfie Pro")
                         .font(.title.bold())
                         .multilineTextAlignment(.center)
-                    Text("The free version holds \(UnlockGate.freeBookLimit) books in \(UnlockGate.freeCategoryLimit) categories. Unlock once to fill every shelf and color your room.")
+                    Text(isUpgrade
+                        ? "You’re on Pro Monthly. Pay once for Lifetime and never pay again."
+                        : "The free version holds \(UnlockGate.freeBookLimit) books in \(UnlockGate.freeCategoryLimit) categories. Go Pro to fill every shelf and color your room.")
                         .multilineTextAlignment(.center)
                         .foregroundStyle(.secondary)
-                    VStack(alignment: .leading, spacing: 14) {
+
+                    VStack(alignment: .leading, spacing: 12) {
                         feature("infinity", "Unlimited books")
                         feature("square.grid.2x2.fill", "All \(UnlockGate.maxCategories) bookcase compartments")
-                        feature("paintbrush.fill", "Room colors for your bookcase, walls and floor")
-                        feature("checkmark.seal.fill", "One-time purchase, no subscription")
+                        feature("paintbrush.fill", "Room colors, premium finishes and floors")
                         feature("heart.fill", "Supports an indie developer")
                     }
-                    .padding(20)
+                    .padding(18)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background(RoundedRectangle(cornerRadius: 20).fill(Color(.secondarySystemBackground)))
+
+                    VStack(spacing: 12) {
+                        planOption(.lifetime)
+                        if !isUpgrade {
+                            planOption(.monthly)
+                        }
+                    }
                 }
                 .padding(.horizontal, 24)
                 .padding(.bottom, 16)
@@ -39,7 +56,7 @@ struct PaywallView: View {
             .safeAreaInset(edge: .bottom) {
                 VStack(spacing: 10) {
                     Button {
-                        Task { await gate.purchase() }
+                        buy()
                     } label: {
                         Group {
                             if gate.isPurchasing {
@@ -53,17 +70,19 @@ struct PaywallView: View {
                         .frame(height: 36)
                     }
                     .buttonStyle(.glassProminent)
-                    .disabled(gate.product == nil || gate.isPurchasing)
+                    .disabled(product(for: selected) == nil || gate.isPurchasing)
 
-                    Text("One-time payment. No subscription.")
+                    Text(termsLine)
                         .font(.footnote)
                         .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
 
                     HStack(spacing: 24) {
                         Button("Restore") {
                             Task { await gate.restore() }
                         }
-                        Link("Terms", destination: AppLinks.terms)
+                        Link("Terms of Use", destination: AppLinks.terms)
                         Link("Privacy", destination: AppLinks.privacy)
                     }
                     .font(.footnote)
@@ -90,22 +109,124 @@ struct PaywallView: View {
             } message: {
                 Text(gate.lastError ?? "")
             }
-            .onChange(of: gate.isUnlocked) { _, unlocked in
-                if unlocked { dismiss() }
+            // After upgrading to Lifetime, the old subscription keeps renewing until it's cancelled.
+            .alert("You own Shelfie Pro forever", isPresented: $remindToCancel) {
+                Button("Manage subscription") { managingSubscription = true }
+                Button("Later", role: .cancel) { dismiss() }
+            } message: {
+                Text("Cancel your monthly subscription so you aren’t charged again. Pro stays on either way.")
+            }
+            .manageSubscriptionsSheet(isPresented: $managingSubscription)
+            .onChange(of: managingSubscription) { _, showing in
+                if !showing { dismiss() }
             }
             .task {
-                if gate.product == nil {
-                    await gate.loadProduct()
+                if gate.lifetime == nil || gate.monthly == nil {
+                    await gate.loadProducts()
                 }
             }
         }
     }
 
-    private var buyTitle: String {
-        if let product = gate.product {
-            return "Unlock for \(product.displayPrice)"
+    // MARK: Plans
+
+    private func planOption(_ plan: ProPlan) -> some View {
+        let isSelected = selected == plan
+        let product = product(for: plan)
+        return Button {
+            withAnimation(.snappy) { selected = plan }
+        } label: {
+            HStack(spacing: 14) {
+                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                    .font(.title2)
+                    .foregroundStyle(isSelected ? Color.accentColor : Color.secondary)
+                VStack(alignment: .leading, spacing: 3) {
+                    HStack(spacing: 8) {
+                        Text(plan == .lifetime ? "Lifetime" : "Monthly")
+                            .font(.headline)
+                        if plan == .lifetime {
+                            Text("BEST VALUE")
+                                .font(.caption2.weight(.bold))
+                                .padding(.horizontal, 7)
+                                .padding(.vertical, 2)
+                                .foregroundStyle(.white)
+                                .background(Capsule().fill(Color.accentColor))
+                        }
+                    }
+                    Text(planSubtitle(plan))
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer(minLength: 8)
+                VStack(alignment: .trailing, spacing: 0) {
+                    Text(product?.displayPrice ?? "…")
+                        .font(.headline)
+                    Text(plan == .lifetime ? "once" : "per month")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .padding(16)
+            .background(
+                RoundedRectangle(cornerRadius: 18)
+                    .fill(Color(.secondarySystemBackground))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 18)
+                    .strokeBorder(isSelected ? Color.accentColor : Color.clear, lineWidth: 2)
+            )
+            .contentShape(Rectangle())
         }
-        return "Loading price…"
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+
+    private func planSubtitle(_ plan: ProPlan) -> String {
+        switch plan {
+        case .lifetime:
+            if let months = gate.lifetimePaybackMonths {
+                return "Pay once, yours forever. Pays for itself in \(months) months."
+            }
+            return "Pay once, yours forever."
+        case .monthly:
+            return "Cancel anytime."
+        }
+    }
+
+    private func product(for plan: ProPlan) -> Product? {
+        plan == .lifetime ? gate.lifetime : gate.monthly
+    }
+
+    private var buyTitle: String {
+        guard let product = product(for: selected) else { return "Loading price…" }
+        switch selected {
+        case .lifetime: return "Get Lifetime for \(product.displayPrice)"
+        case .monthly: return "Subscribe for \(product.displayPrice)/month"
+        }
+    }
+
+    /// The wording App Review expects next to the buy button.
+    private var termsLine: String {
+        switch selected {
+        case .lifetime:
+            return "One-time payment. No subscription."
+        case .monthly:
+            let price = gate.monthly?.displayPrice ?? "The monthly price"
+            return "\(price) per month, charged to your Apple ID. Renews automatically each month unless cancelled at least 24 hours before the renewal date. Manage or cancel anytime in Settings › Apple Account › Subscriptions."
+        }
+    }
+
+    private func buy() {
+        guard let product = product(for: selected) else { return }
+        let wasSubscribed = gate.hasMonthlySubscription
+        Task {
+            guard await gate.purchase(product) else { return }
+            if selected == .lifetime && wasSubscribed {
+                remindToCancel = true
+            } else {
+                dismiss()
+            }
+        }
     }
 
     private func feature(_ systemImage: String, _ text: String) -> some View {

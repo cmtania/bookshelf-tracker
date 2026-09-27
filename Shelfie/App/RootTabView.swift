@@ -8,6 +8,7 @@ struct RootTabView: View {
 
     @Environment(\.modelContext) private var context
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(UnlockGate.self) private var gate
     @State private var tab: TabID = .shelf
 
     var body: some View {
@@ -31,6 +32,8 @@ struct RootTabView: View {
         .onChange(of: scenePhase) { _, phase in
             if phase == .active {
                 Task { await ReminderScheduler.reschedule(context: context) }
+                // Picks up a monthly subscription that renewed or ran out while the app was closed.
+                Task { await gate.refresh() }
             }
         }
     }
