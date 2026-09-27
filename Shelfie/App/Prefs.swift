@@ -10,6 +10,7 @@ enum Prefs {
     /// "lifetime" or "monthly" while Shelfie Pro is active (see UnlockGate).
     static let planCacheKey = "proPlanCache"
     static let didSeedKey = "didSeedCategories"
+    static let onboardingDoneKey = "onboardingDone"
     static let shelfColorKey = "theme.shelf"
     static let wallColorKey = "theme.wall"
     static let floorColorKey = "theme.floor"

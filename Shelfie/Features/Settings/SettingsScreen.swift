@@ -12,6 +12,7 @@ struct SettingsScreen: View {
 
     @State private var showingPaywall = false
     @State private var managingSubscription = false
+    @State private var confirmingReset = false
 
     // Categories are managed in their own tab (CategoriesScreen).
     var body: some View {
@@ -20,9 +21,17 @@ struct SettingsScreen: View {
                 unlockSection
                 appearanceSection
                 remindersSection
+                dataSection
                 aboutSection
             }
             .navigationTitle("Settings")
+            .confirmationDialog("Reset all data?", isPresented: $confirmingReset, titleVisibility: .visible) {
+                Button("Delete everything", role: .destructive) {
+                    Task { await DataReset.eraseLibrary(context) }
+                }
+            } message: {
+                Text("This deletes every book, category, note and reading session on this iPhone, and can’t be undone. Your Shelfie Pro purchase isn’t affected.")
+            }
             .sheet(isPresented: $showingPaywall) {
                 PaywallView()
             }
@@ -143,6 +152,20 @@ struct SettingsScreen: View {
             Text("Reminders")
         } footer: {
             Text("The streak alert comes at 8 PM when a book you're reading has a streak but no reading logged that day.")
+        }
+    }
+
+    private var dataSection: some View {
+        Section {
+            Button(role: .destructive) {
+                confirmingReset = true
+            } label: {
+                Label("Reset all data", systemImage: "trash")
+            }
+        } header: {
+            Text("Data")
+        } footer: {
+            Text("Start over with an empty bookcase. Your library is stored only on this iPhone, so it can’t be recovered afterwards.")
         }
     }
 

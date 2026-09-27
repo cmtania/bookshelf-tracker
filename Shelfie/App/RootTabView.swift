@@ -9,6 +9,7 @@ struct RootTabView: View {
     @Environment(\.modelContext) private var context
     @Environment(\.scenePhase) private var scenePhase
     @Environment(UnlockGate.self) private var gate
+    @AppStorage(Prefs.onboardingDoneKey) private var onboardingDone = false
     @State private var tab: TabID = .shelf
 
     var body: some View {
@@ -28,6 +29,14 @@ struct RootTabView: View {
         }
         .task {
             Seed.ifNeeded(context)
+        }
+        // First launch, and again after Reset all data.
+        .fullScreenCover(isPresented: Binding(get: { !onboardingDone }, set: { if !$0 { onboardingDone = true } })) {
+            OnboardingView {
+                onboardingDone = true
+                tab = .shelf
+            }
+            .interactiveDismissDisabled()
         }
         .onChange(of: scenePhase) { _, phase in
             if phase == .active {
