@@ -13,7 +13,7 @@ settings:
     CURRENT_PROJECT_VERSION: "1"
     CODE_SIGN_STYLE: Automatic
     # Set your team here or in Xcode > Signing & Capabilities.
-    DEVELOPMENT_TEAM: ""
+    DEVELOPMENT_TEAM: "MD42BG8ZP4"
 targets:
   Shelfie:
     type: application
