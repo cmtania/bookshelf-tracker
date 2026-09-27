@@ -8,6 +8,32 @@
 > - **Camera poses:** *overview* and *compartment close-up*. At the overview distance a book spine is only about 6 pt wide, too small to tap, so tapping a compartment zooms in first; tapping a spine then pulls the book out and opens its detail. A glass chip row mirrors the shelf with full-size tap targets and serves as the VoiceOver path.
 > - **Reminders:** planned up to 7 days ahead as one-off notifications (at most 9 pending), so today's reminder can be skipped once you've already read.
 
+> **Added or changed after the plan, during the build (27 September 2026).** The plan below is kept as it was approved. The README describes the current app.
+> - **App name:** "Shelfie: Reading Books Tracker". The final logo is the flat orange tile in `design/logo/`.
+> - **Money:** "Unlock" became **Shelfie Pro**, sold two ways:
+>   - **Pro Lifetime** (non-consumable `com.cmtania.shelfie.unlock`, ₱249), pre-selected on the paywall;
+>   - **Pro Monthly** (auto-renewing `com.cmtania.shelfie.pro.monthly`, ₱59).
+>   - Room colors are Pro as well.
+> - **Bookshelf:**
+>   - A tapped book flies out of the shelf and shows its cover, with Log reading and Edit.
+>   - Zoomed out, the top bar has room colors and share; zoomed in, it has rename and add.
+>   - Category labels are bigger, and the walls have a plaster texture.
+> - **Room colors:** bookcase, wall and floor presets. Premium options add lacquer and metal finishes, and patterned floors.
+> - **Share your shelf:** a 2D image of the bookcase alone.
+> - **Categories tab:** a new tab. Category management moved there from Settings.
+> - **Calendar:** a compact stats strip, and a week view that expands to the month.
+> - **Log reading screen:** it starts at the page progress. Book details and Edit moved under the 3D book.
+> - **Categories at first launch:** they start as neutral "Shelf 1–3" names for the user to rename.
+> - **Onboarding:** 4 skippable pages, with no paywall.
+> - **Settings:** Reset all data, and support contact (Christian Tania, tania.dev.ph@gmail.com).
+> - **Number fields:** they accept digits only.
+> - **Release:**
+>   - a privacy manifest;
+>   - an Xcode Cloud post-clone script;
+>   - App Store screenshots in `appstore/`;
+>   - the website `bookshelf-tracker-docs` (landing, support, privacy, terms);
+>   - `docs/app-store-submission.md`.
+
 ## Context
 The user wants a reading tracker where the home screen is a **3D room with a bookshelf**, and their books sit on it grouped by category. It sets itself apart the same way Subwall does, through a physical, tactile 3D home screen instead of a list. Features: books per category with details (page count and more), notes per book, a reading calendar, notifications, and a **streak per book**. Native iOS only, **one-time payment**. The user wants it done over a weekend, so the scope has to be split into a weekend slice plus follow-up work.
 
