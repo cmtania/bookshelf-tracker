@@ -55,9 +55,21 @@ ShelfieTests/ Swift Testing unit tests
 docs/plan.md  the v1.0 plan
 ```
 
+## Logo
+
+The final logo is cream shelves and books on an orange (`#FFA500`) tile. Files are in `design/logo/`:
+
+| File | Use |
+|---|---|
+| `shelfie-applogo.svg` | The original design (master file) |
+| `shelfie-logo.svg` | Clean copy with a transparent background: website, App Store page, social media, and the `Logo` image in the app |
+| `shelfie-appicon.svg` / `app-icon-1024.png` | The app icon: the same artwork filling a square (iOS adds the rounded corners) |
+
+Inside the app, the logo appears on the paywall and in the credit on the shareable shelf image, as `Image("Logo")`. The tab bar keeps the `books.vertical` symbol, because tab icons must be single-colour template symbols. Other files in `design/logo/` are earlier concepts that aren't used.
+
 ## Before submitting to the App Store
 
-- [ ] App icon (1024×1024) in `Assets.xcassets/AppIcon`
+- [x] App icon (1024×1024) in `Assets.xcassets/AppIcon`, made from the final logo (see Logo above)
 - [ ] Check the app name "Shelfie" is free on the App Store, or rename it
 - [ ] Host `PRIVACY.md` at a public URL, and update `AppLinks.privacy` if it moves
 - [ ] Create the IAP product in App Store Connect and add it to the first submission

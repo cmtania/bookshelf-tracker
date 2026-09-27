@@ -10,9 +10,10 @@ struct PaywallView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
-                    Image(systemName: "books.vertical.fill")
-                        .font(.system(size: 60))
-                        .foregroundStyle(Color.accentColor)
+                    Image("Logo")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 96)
                         .padding(.top, 12)
                         .accessibilityHidden(true)
                     Text("Unlock your whole library")

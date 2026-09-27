@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="t">
+  <title id="t">Shelfie - 3D book stack S</title>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#F7B347"/>
+      <stop offset="1" stop-color="#E0692A"/>
+    </linearGradient>
+    <radialGradient id="shadow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#7A2E0E" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#7A2E0E" stop-opacity="0"/>
+    </radialGradient>
+    <!-- Page edges on the right end of each book -->
+    <pattern id="pages" width="8" height="12" patternUnits="userSpaceOnUse">
+      <rect width="8" height="12" fill="#F4E6CC"/>
+      <rect y="10" width="8" height="2" fill="#D9C3A0"/>
+    </pattern>
+  </defs>
+
+  <rect width="1024" height="1024" rx="225" fill="url(#bg)"/>
+  <ellipse cx="530" cy="790" rx="330" ry="34" fill="url(#shadow)"/>
+
+  <!-- Oblique 3D: depth goes up-right by (60, -45). Drawn bottom book first. -->
+
+  <!-- Book 4 (bottom) - teal, shifted left -->
+  <path d="M230 640H690L750 595H290Z" fill="#35B0A1"/>
+  <path d="M690 640L750 595V715L690 760Z" fill="url(#pages)"/>
+  <path d="M690 640L750 595V606L690 651Z M690 749L750 704V715L690 760Z" fill="#157066"/>
+  <rect x="230" y="640" width="460" height="120" rx="6" fill="#1F8A7E"/>
+  <rect x="262" y="640" width="12" height="120" fill="#F2CF7A"/>
+  <rect x="646" y="640" width="12" height="120" fill="#F2CF7A"/>
+
+  <!-- Book 3 - cream, shifted right -->
+  <path d="M320 520H760L820 475H380Z" fill="#FFF8EC"/>
+  <path d="M760 520L820 475V595L760 640Z" fill="url(#pages)"/>
+  <path d="M760 520L820 475V486L760 531Z M760 629L820 584V595L760 640Z" fill="#D8C3A2"/>
+  <rect x="320" y="520" width="440" height="120" rx="6" fill="#F3E3C6"/>
+  <rect x="352" y="520" width="12" height="120" fill="#E0692A"/>
+  <rect x="716" y="520" width="12" height="120" fill="#E0692A"/>
+
+  <!-- Book 2 - berry, shifted left -->
+  <path d="M210 400H660L720 355H270Z" fill="#DE6379"/>
+  <path d="M660 400L720 355V475L660 520Z" fill="url(#pages)"/>
+  <path d="M660 400L720 355V366L660 411Z M660 509L720 464V475L660 520Z" fill="#9C2F43"/>
+  <rect x="210" y="400" width="450" height="120" rx="6" fill="#C8435A"/>
+  <rect x="242" y="400" width="12" height="120" fill="#F2CF7A"/>
+  <rect x="616" y="400" width="12" height="120" fill="#F2CF7A"/>
+
+  <!-- Book 1 (top) - cream, shifted right, with a flame embossed on the cover -->
+  <path d="M290 280H720L780 235H350Z" fill="#FFF8EC"/>
+  <path d="M720 280L780 235V355L720 400Z" fill="url(#pages)"/>
+  <path d="M720 280L780 235V246L720 291Z M720 389L780 344V355L720 400Z" fill="#D8C3A2"/>
+  <rect x="290" y="280" width="430" height="120" rx="6" fill="#F3E3C6"/>
+  <rect x="322" y="280" width="12" height="120" fill="#1F8A7E"/>
+  <rect x="676" y="280" width="12" height="120" fill="#1F8A7E"/>
+  <!-- Streak flame standing on the top book -->
+  <ellipse cx="535" cy="262" rx="46" ry="11" fill="#D8C3A2"/>
+  <g transform="translate(535 206)">
+    <path fill="#C8435A" d="M0 -84C36 -44 62 -17 62 16C62 51 35 74 0 74C-35 74 -62 51 -62 16C-62 -6 -49 -24 -36 -35C-34 -14 -22 0 -10 3C-15 -28 -12 -58 0 -84Z"/>
+    <path fill="#FFF8EC" d="M0 -20C17 0 28 13 28 29C28 46 16 57 0 57C-16 57 -28 46 -28 29C-28 19 -22 10 -17 4C-16 14 -10 20 -4 21C-7 7 -6 -7 0 -20Z"/>
+  </g>
+</svg>

@@ -29,7 +29,10 @@ struct ShelfShareCard: View {
                 .frame(maxHeight: .infinity)
 
             HStack(spacing: 6) {
-                Image(systemName: "books.vertical.fill")
+                Image("Logo")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 16)
                 Text("Shelfie")
                     .fontWeight(.semibold)
                 Text("· my reading, on a 3D shelf")
