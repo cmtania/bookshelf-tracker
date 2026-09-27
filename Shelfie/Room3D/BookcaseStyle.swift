@@ -76,6 +76,16 @@ struct BookcaseLayout {
     var width: Float { maxX - minX }
     var height: Float { maxY - minY }
     var center: SIMD3<Float> { SIMD3((minX + maxX) / 2, (minY + maxY) / 2, frontZ) }
+
+    /// Where the back wall's surface is at the ceiling: 0, or the front of a built-out wall that
+    /// reaches the ceiling (Pocket niches), so the ceiling's moulding sits on it, not inside it.
+    var wallFrontAtCeiling: Float {
+        pieces
+            // The room is 3.2 m tall (RoomFactory).
+            .filter { $0.role == .wall && $0.center.y + $0.size.y / 2 >= 3.19 }
+            .map { $0.center.z + $0.size.z / 2 }
+            .max() ?? 0
+    }
 }
 
 enum BookcaseLayouts {
