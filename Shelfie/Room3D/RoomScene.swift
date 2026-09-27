@@ -18,7 +18,10 @@ final class RoomScene {
 
     private let camera = PerspectiveCamera()
     private let shelfRoot = Entity()
-    private let geometry = BookcaseGeometry()
+    /// Pieces and compartments of the current bookcase design (follows the theme's style).
+    private var layout = BookcaseStyle.classic.layout
+    /// The last shelf contents, so a new bookcase design can be rebuilt with the same books.
+    private var lastSnapshot: ShelfSnapshot?
     private var isBuilt = false
     private var viewAspect: Float = 0.46
     private var bookEntities: [UUID: Entity] = [:]
@@ -51,14 +54,15 @@ final class RoomScene {
     // MARK: Building
 
     func update(_ snapshot: ShelfSnapshot) {
+        lastSnapshot = snapshot
         buildStaticIfNeeded()
         bookEntities.removeAll()
         bookSnapshots.removeAll()
         for child in Array(shelfRoot.children) {
             child.removeFromParent()
         }
-        for compartment in snapshot.compartments {
-            let build = BookcaseFactory.makeCompartment(compartment, geometry: geometry)
+        for compartment in snapshot.compartments where compartment.index < layout.slots.count {
+            let build = BookcaseFactory.makeCompartment(compartment, slot: layout.slots[compartment.index])
             shelfRoot.addChild(build.entity)
             bookEntities.merge(build.books) { first, _ in first }
             for book in compartment.books {
@@ -89,18 +93,29 @@ final class RoomScene {
         applyCamera(animated: false)
     }
 
-    /// Applies new room colours; only the room and the bookcase frame are rebuilt, the books stay.
+    /// Applies new room colours or a new bookcase design. Colours rebuild only the room and frame;
+    /// a new design also rebuilds every compartment, because the books move to the new shelves.
     func setTheme(_ newTheme: RoomTheme) {
         guard newTheme != theme else { return }
+        let styleChanged = newTheme.style != theme.style
         theme = newTheme
-        if isBuilt { buildThemedParts() }
+        if styleChanged {
+            layout = newTheme.style.layout
+        }
+        guard isBuilt else { return }
+        buildThemedParts()
+        if styleChanged {
+            dismissPresentedImmediately()
+            if let lastSnapshot { update(lastSnapshot) }
+            applyCamera(animated: !reduceMotion)
+        }
     }
 
     private func buildThemedParts() {
         roomEntity?.removeFromParent()
         frameEntity?.removeFromParent()
         let room = RoomFactory.makeRoom(theme: theme)
-        let frame = BookcaseFactory.makeFrame(geometry, paint: theme.shelf)
+        let frame = BookcaseFactory.makeFrame(layout, theme: theme)
         root.addChild(room)
         root.addChild(frame)
         roomEntity = room
@@ -167,14 +182,15 @@ final class RoomScene {
         let center: SIMD3<Float>
         let halfWidth: Float
         let halfHeight: Float
-        if let index = focusedCompartment {
-            center = geometry.frontCenter(of: index)
-            halfWidth = geometry.innerWidth / 2 + 0.06
-            halfHeight = geometry.rowHeight / 2 + 0.08
+        if let index = focusedCompartment, index < layout.slots.count {
+            let slot = layout.slots[index]
+            center = slot.frontCenter
+            halfWidth = slot.width / 2 + 0.06
+            halfHeight = slot.height / 2 + 0.08
         } else {
-            center = [0, geometry.height / 2, geometry.frontZ]
-            halfWidth = geometry.width / 2 + 0.12
-            halfHeight = geometry.height / 2 + 0.1
+            center = layout.center
+            halfWidth = layout.width / 2 + 0.12
+            halfHeight = layout.height / 2 + 0.1
         }
         let distance = max(halfWidth / horizontalTan, halfHeight / (verticalTan * usableHeight))
 
@@ -194,13 +210,13 @@ final class RoomScene {
     /// The top half spans tangents 0...verticalTan above the optical axis, so the camera tilts down by
     /// atan(verticalTan / 2): that puts the room's centre in the middle of the top half.
     private func roomPreviewTransform(verticalTan: Float, horizontalTan: Float) -> Transform {
-        let center = SIMD3<Float>(0, geometry.height / 2, geometry.frontZ)
+        let center = layout.center
         // Half-sizes of what should be visible: the bookcase with wall on both sides, and floor in front.
-        let halfWidth = geometry.width / 2 + 0.7
-        let halfHeight = geometry.height / 2 + 0.45
+        let halfWidth = layout.width / 2 + 0.7
+        let halfHeight = layout.height / 2 + 0.45
         let distance = max(halfWidth / horizontalTan, halfHeight / (verticalTan / 2))
         // Stay inside the room (it's 7 m deep), so the camera never sees past the walls' edges.
-        let maxDistance = RoomFactory.roomDepth - 0.4 - geometry.frontZ
+        let maxDistance = RoomFactory.roomDepth - 0.4 - layout.frontZ
         let tilt = atan(verticalTan / 2)
 
         var transform = Transform()
