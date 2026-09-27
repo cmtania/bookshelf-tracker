@@ -21,6 +21,8 @@ struct BookshelfScreen: View {
     @State private var readingBook: Book?
     @State private var editingBook: Book?
     @State private var pendingDelete = false
+    /// The book waiting for "Delete book?" to be confirmed (from the 3D book or a chip).
+    @State private var bookToDelete: Book?
     @State private var addingBook = false
     @State private var addingCategory = false
     @State private var showingPaywall = false
@@ -154,6 +156,17 @@ struct BookshelfScreen: View {
         .sheet(item: $renamingCategory) { category in
             CategoryEditSheet(category: category)
         }
+        .confirmationDialog(
+            "Delete “\(bookToDelete?.title ?? "this book")”?",
+            isPresented: Binding(get: { bookToDelete != nil }, set: { if !$0 { bookToDelete = nil } }),
+            titleVisibility: .visible,
+            presenting: bookToDelete
+        ) { book in
+            Button("Delete book", role: .destructive) { delete(book) }
+            Button("Cancel", role: .cancel) {}
+        } message: { _ in
+            Text(BookDeletion.confirmationMessage)
+        }
     }
 
     private func shareCard(_ snapshot: ShelfSnapshot) -> ShelfShareCard {
@@ -265,6 +278,17 @@ struct BookshelfScreen: View {
 
             VStack(spacing: 12) {
                 HStack {
+                    Button {
+                        bookToDelete = book
+                    } label: {
+                        Image(systemName: "trash")
+                            .font(.headline)
+                            .foregroundStyle(.red)
+                            .frame(width: 30, height: 30)
+                    }
+                    .buttonStyle(.glass)
+                    .buttonBorderShape(.circle)
+                    .accessibilityLabel("Delete \(book.title)")
                     Spacer()
                     Button {
                         closePresentation(animated: true)
@@ -361,6 +385,18 @@ struct BookshelfScreen: View {
                     let shelfBooks = snapshot.compartments[focused].books
                     ForEach(shelfBooks) { book in
                         chip(book.title, colorHex: book.spineColorHex) { open(bookID: book.id) }
+                            .contextMenu {
+                                Button {
+                                    open(bookID: book.id)
+                                } label: {
+                                    Label("Open", systemImage: "book")
+                                }
+                                Button(role: .destructive) {
+                                    bookToDelete = books.first { $0.id == book.id }
+                                } label: {
+                                    Label("Delete book", systemImage: "trash")
+                                }
+                            }
                     }
                     if shelfBooks.isEmpty {
                         chip("Add a book", systemImage: "plus") { requestAddBook() }
@@ -449,12 +485,18 @@ struct BookshelfScreen: View {
     private func deleteIfRequested() {
         guard pendingDelete, let book = presentedBook else { return }
         pendingDelete = false
-        closePresentation(animated: false)
+        delete(book)
+    }
+
+    /// Deletes a book. If it's the one pulled out of the shelf, put it back first, so nothing
+    /// on screen still reads the book once it's gone.
+    private func delete(_ book: Book) {
+        if presentedID == book.id {
+            closePresentation(animated: false)
+        }
         Task {
             try? await Task.sleep(for: .milliseconds(200))
-            context.delete(book)
-            try? context.save()
-            await ReminderScheduler.reschedule(context: context)
+            await BookDeletion.delete(book, in: context)
         }
     }
 
