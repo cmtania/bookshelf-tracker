@@ -15,29 +15,6 @@ struct AboutSheet: View {
         NavigationStack {
             List {
                 Section {
-                    VStack(spacing: 10) {
-                        Image("Logo")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 96)
-                            .shadow(color: .black.opacity(0.12), radius: 10, y: 6)
-                            .accessibilityHidden(true)
-                        Text("Shelfie")
-                            .font(.title.bold())
-                        Text(version)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                        Text("Your reading, on a 3D bookshelf.")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-                    .accessibilityElement(children: .combine)
-                }
-                .listRowBackground(Color.clear)
-
-                Section {
                     linkRow("Help & FAQ", systemImage: "questionmark.circle", destination: AppLinks.support)
                     linkRow("Privacy Policy", systemImage: "hand.raised", destination: AppLinks.privacy)
                     linkRow("Terms of Service", systemImage: "doc.text", destination: AppLinks.termsOfService)
@@ -64,15 +41,45 @@ struct AboutSheet: View {
                         .padding(.top, 12)
                 }
             }
-            .navigationTitle("About")
-            .navigationBarTitleDisplayMode(.inline)
+            // Logo, name and version pinned at the top, so the list below always has room for every link.
+            .safeAreaInset(edge: .top, spacing: 0) {
+                header
+            }
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { dismiss() }
                 }
             }
+            .navigationBarTitleDisplayMode(.inline)
         }
-        .presentationDetents([.medium, .large])
+        .presentationDetents([.large])
+    }
+
+    private var header: some View {
+        HStack(spacing: 14) {
+            Image("Logo")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 60)
+                .shadow(color: .black.opacity(0.12), radius: 8, y: 4)
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Shelfie")
+                    .font(.title2.bold())
+                Text(version)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                Text("Your reading, on a 3D bookshelf.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 20)
+        .padding(.top, 4)
+        .padding(.bottom, 12)
+        .background(Color(.systemGroupedBackground))
+        .accessibilityElement(children: .combine)
     }
 
     private func linkRow(_ title: String, systemImage: String, destination: URL) -> some View {
