@@ -16,6 +16,8 @@ struct CategoryDetailView: View {
     @State private var showingPaywall = false
     @State private var readingBook: Book?
     @State private var confirmingDelete = false
+    /// A book waiting for "Delete book?" to be confirmed.
+    @State private var bookToDelete: Book?
 
     private var index: Int {
         categories.firstIndex { $0.id == category.id } ?? category.sortIndex
@@ -43,6 +45,8 @@ struct CategoryDetailView: View {
                 Section("Reading now") {
                     ForEach(stats.nowReading) { book in
                         Button { readingBook = book } label: { readingRow(book) }
+                            .swipeActions { deleteAction(book) }
+                            .contextMenu { bookMenu(book) }
                     }
                 }
             }
@@ -54,6 +58,8 @@ struct CategoryDetailView: View {
                 }
                 ForEach(sortedBooks) { book in
                     Button { readingBook = book } label: { bookRow(book) }
+                        .swipeActions { deleteAction(book) }
+                        .contextMenu { bookMenu(book) }
                 }
                 Button {
                     requestAddBook()
@@ -93,6 +99,19 @@ struct CategoryDetailView: View {
         }
         .sheet(item: $readingBook) { book in
             BookDetailView(book: book)
+        }
+        .confirmationDialog(
+            "Delete “\(bookToDelete?.title ?? "this book")”?",
+            isPresented: Binding(get: { bookToDelete != nil }, set: { if !$0 { bookToDelete = nil } }),
+            titleVisibility: .visible,
+            presenting: bookToDelete
+        ) { book in
+            Button("Delete book", role: .destructive) {
+                Task { await BookDeletion.delete(book, in: context) }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: { _ in
+            Text(BookDeletion.confirmationMessage)
         }
         .confirmationDialog("Delete “\(category.name)”?", isPresented: $confirmingDelete, titleVisibility: .visible) {
             Button("Delete category", role: .destructive) { deleteCategory() }
@@ -180,6 +199,28 @@ struct CategoryDetailView: View {
     }
 
     // MARK: Rows
+
+    private func deleteAction(_ book: Book) -> some View {
+        Button(role: .destructive) {
+            bookToDelete = book
+        } label: {
+            Label("Delete", systemImage: "trash")
+        }
+    }
+
+    @ViewBuilder
+    private func bookMenu(_ book: Book) -> some View {
+        Button {
+            readingBook = book
+        } label: {
+            Label("Open", systemImage: "book")
+        }
+        Button(role: .destructive) {
+            bookToDelete = book
+        } label: {
+            Label("Delete book", systemImage: "trash")
+        }
+    }
 
     private func readingRow(_ book: Book) -> some View {
         VStack(alignment: .leading, spacing: 6) {
