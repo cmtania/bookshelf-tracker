@@ -8,7 +8,7 @@ Everything App Store Connect asks for, ready to paste, for version **1.0.0**. Fi
 
 | Field | Value |
 |---|---|
-| **Name** (max 30) | `Shelfie: Reading Tracker` |
+| **Name** (max 30) | `Shelfie: Reading Books Tracker` (29) |
 | **Subtitle** (max 30) | `Your books on a 3D bookshelf` |
 | **Bundle ID** | `com.cmtania.shelfie` |
 | **SKU** | `shelfie-ios` |
@@ -18,7 +18,7 @@ Everything App Store Connect asks for, ready to paste, for version **1.0.0**. Fi
 | **Content rights** | "No, it does not contain, show, or access third-party content." Users type their own book titles. The app doesn't include or download any book content. |
 | **Age rating** | Answer **None / No** to every question → **4+** |
 
-If "Shelfie: Reading Tracker" is taken, try `Shelfie – Book & Reading Log` or `Shelfie: 3D Reading Tracker`.
+**App price:** Free (Pricing and Availability → Add Pricing → Philippines → Free). Available in all 175 countries or regions. Tax category: App Store software. "iPhone and iPad Apps on Apple Silicon Macs" and Apple Vision Pro: **off** until they've been tested there.
 
 ---
 
@@ -117,7 +117,7 @@ Privacy Policy: https://cmtania.github.io/bookshelf-tracker-docs/privacy.html
 book,log,streak,bookshelf,journal,goals,library,pages,habit,notes,planner,tbr,diary,read,counter,3d
 ```
 
-This is 99 characters. The words in the name and subtitle ("Shelfie", "Reading", "Tracker", "books", "3D", "bookshelf") are already indexed, so they don't need repeating here. Never add other apps' names, such as Goodreads; that's a rejection reason.
+This is 99 characters. The words in the name and subtitle ("Shelfie", "Reading", "Books", "Tracker", "3D", "bookshelf") are already indexed, so they don't need repeating here. Never add other apps' names, such as Goodreads; that's a rejection reason.
 
 ### URLs
 
