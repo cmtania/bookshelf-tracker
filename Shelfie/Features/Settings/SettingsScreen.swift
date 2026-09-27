@@ -11,6 +11,7 @@ struct SettingsScreen: View {
     @AppStorage(Prefs.streakAlertEnabledKey) private var streakAlertEnabled = true
 
     @State private var showingPaywall = false
+    @State private var showingAbout = false
     @State private var managingSubscription = false
     @State private var confirmingReset = false
 
@@ -19,18 +20,18 @@ struct SettingsScreen: View {
         NavigationStack {
             List {
                 unlockSection
-                appearanceSection
                 remindersSection
                 dataSection
                 aboutSection
             }
             .navigationTitle("Settings")
-            .confirmationDialog("Reset all data?", isPresented: $confirmingReset, titleVisibility: .visible) {
-                Button("Delete everything", role: .destructive) {
+            .sheet(isPresented: $showingAbout) {
+                AboutSheet()
+            }
+            .sheet(isPresented: $confirmingReset) {
+                ResetDataSheet {
                     Task { await DataReset.eraseLibrary(context) }
                 }
-            } message: {
-                Text("This deletes every book, category, note and reading session on this iPhone, and can’t be undone. Your Shelfie Pro purchase isn’t affected.")
             }
             .sheet(isPresented: $showingPaywall) {
                 PaywallView()
@@ -116,30 +117,7 @@ struct SettingsScreen: View {
         .manageSubscriptionsSheet(isPresented: $managingSubscription)
     }
 
-    /// Room colors are part of Shelfie Pro (Lifetime or Monthly).
-    private var appearanceSection: some View {
-        Section("Appearance") {
-            if gate.isUnlocked {
-                NavigationLink {
-                    RoomThemeEditor()
-                        .navigationTitle("Room colors")
-                } label: {
-                    Label("Room colors", systemImage: "paintbrush.fill")
-                }
-            } else {
-                Button {
-                    showingPaywall = true
-                } label: {
-                    HStack {
-                        Label("Room colors", systemImage: "paintbrush.fill")
-                            .foregroundStyle(.primary)
-                        Spacer()
-                        ProBadge()
-                    }
-                }
-            }
-        }
-    }
+    // Room colors live on the Bookshelf tab (the paintbrush), so they aren't repeated here.
 
     private var remindersSection: some View {
         Section {
@@ -169,14 +147,26 @@ struct SettingsScreen: View {
         }
     }
 
+    /// One row; help, legal pages, support and the version are in the About sheet.
     private var aboutSection: some View {
-        Section("About") {
-            Link(destination: AppLinks.supportEmail) {
-                LabeledContent("Contact support", value: "tania.dev.ph@gmail.com")
+        Section {
+            Button {
+                showingAbout = true
+            } label: {
+                HStack(spacing: 12) {
+                    Image("Logo")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 30)
+                        .accessibilityHidden(true)
+                    Text("About Shelfie")
+                        .foregroundStyle(.primary)
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(.tertiary)
+                }
             }
-            Link("Help & FAQ", destination: AppLinks.support)
-            Link("Privacy policy", destination: AppLinks.privacy)
-            LabeledContent("Version", value: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0")
         }
     }
 
@@ -220,6 +210,8 @@ struct ProBadge: View {
 enum AppLinks {
     static let privacy = URL(string: "https://cmtania.github.io/bookshelf-tracker-docs/privacy.html")!
     static let support = URL(string: "https://cmtania.github.io/bookshelf-tracker-docs/support.html")!
+    /// Shelfie's own Terms of Service page (the paywall links Apple's EULA, `terms`).
+    static let termsOfService = URL(string: "https://cmtania.github.io/bookshelf-tracker-docs/terms.html")!
     /// Apple's standard EULA ("Terms of Use"), which App Review expects next to subscriptions.
     static let terms = URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!
     static let supportEmail = URL(string: "mailto:tania.dev.ph@gmail.com?subject=Shelfie%20support")!
