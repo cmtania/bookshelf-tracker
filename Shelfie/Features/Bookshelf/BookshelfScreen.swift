@@ -81,7 +81,8 @@ struct BookshelfScreen: View {
             Group {
                 if let book = presentedBook {
                     presentationOverlay(book)
-                } else {
+                } else if !editingTheme {
+                    // Hidden while choosing room colors, so nothing covers the room.
                     VStack(spacing: 0) {
                         topBar(shelf)
                         Spacer(minLength: 0)
@@ -92,6 +93,11 @@ struct BookshelfScreen: View {
                 }
             }
             .environment(\.colorScheme, overlayScheme)
+            .animation(.snappy, value: editingTheme)
+        }
+        .onChange(of: editingTheme) { _, editing in
+            // Pull back to the whole room while the colors sheet is up, and return afterwards.
+            scene.setRoomPreview(editing)
         }
         .onChange(of: theme, initial: true) { _, newTheme in
             scene.setTheme(newTheme)
@@ -134,9 +140,12 @@ struct BookshelfScreen: View {
                         }
                     }
             }
-            // A short sheet you can see the room through, so colour changes show live.
-            .presentationDetents([.fraction(0.45), .large])
-            .presentationBackgroundInteraction(.enabled(upThrough: .fraction(0.45)))
+            // Fixed at half the screen: the camera frames the whole room in the top half,
+            // so every color change shows live above the sheet.
+            .presentationDetents([.fraction(0.5)])
+            .presentationDragIndicator(.hidden)
+            .presentationBackgroundInteraction(.enabled(upThrough: .fraction(0.5)))
+            .presentationContentInteraction(.scrolls)
         }
         .sheet(isPresented: $sharing) {
             ShareShelfSheet(card: shareCard(shelf))
@@ -392,6 +401,8 @@ struct BookshelfScreen: View {
     // MARK: Actions
 
     private func handleTap(_ entity: Entity) {
+        // While picking room colors the room is just a preview; taps shouldn't zoom or open books.
+        guard !editingTheme else { return }
         let hit = RoomScene.resolve(entity)
         guard let index = hit.compartment else { return }
         if index >= categories.count {
