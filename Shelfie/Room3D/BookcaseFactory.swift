@@ -2,8 +2,8 @@ import Foundation
 import RealityKit
 import UIKit
 
-/// Builds the bookcase frame (rebuilt when the theme changes), and each compartment
-/// (tap target, label, books) on every shelf change.
+/// Builds the bookcase frame from the style's pieces (rebuilt when the theme changes), and each
+/// compartment (tap target, label, books) from its slot on every shelf change.
 @MainActor
 enum BookcaseFactory {
     struct CompartmentBuild {
@@ -11,55 +11,54 @@ enum BookcaseFactory {
         let books: [UUID: Entity]
     }
 
-    static func makeFrame(_ g: BookcaseGeometry, paint preset: RoomTheme.Preset) -> Entity {
+    static func makeFrame(_ layout: BookcaseLayout, theme: RoomTheme) -> Entity {
         let frame = Entity()
         frame.name = "bookcase"
-        let paintColor = UIColor(hex: preset.hex)
-        let paint = RoomFactory.material(color: paintColor, finish: preset.finish)
-        // The back panel sits in shadow, so it's a touch darker than the frame.
-        let backPaint = RoomFactory.material(color: paintColor.adjustingBrightness(by: 0.93), roughness: 0.85)
+        let paintColor = UIColor(hex: theme.shelf.hex)
+        let paint = RoomFactory.material(color: paintColor, finish: theme.shelf.finish)
+        // Back panels and plinths sit in shadow, so they're a touch darker and matte.
+        let paintShade = RoomFactory.material(color: paintColor.adjustingBrightness(by: 0.93), roughness: 0.85)
+        var metal = RoomFactory.material(hex: "#1E1F22", roughness: 0.45)
+        metal.metallic = .init(floatLiteral: 0.6)
+        let wall = RoomFactory.wallMaterial(hex: theme.wall.hex)
+        let wallShade = RoomFactory.material(color: UIColor(hex: theme.wall.hex).adjustingBrightness(by: 0.84), roughness: 0.95)
 
-        func board(_ width: Float, _ height: Float, _ depth: Float, _ position: SIMD3<Float>, _ material: PhysicallyBasedMaterial) {
-            let entity = ModelEntity(mesh: .generateBox(width: width, height: height, depth: depth), materials: [material])
-            entity.position = position
+        for piece in layout.pieces {
+            let material: PhysicallyBasedMaterial
+            switch piece.role {
+            case .paint: material = paint
+            case .paintShade: material = paintShade
+            case .metal: material = metal
+            case .wall: material = wall
+            case .wallShade: material = wallShade
+            }
+            let entity = ModelEntity(
+                mesh: .generateBox(width: piece.size.x, height: piece.size.y, depth: piece.size.z),
+                materials: [material]
+            )
+            entity.position = piece.center
+            if piece.angle != 0 {
+                entity.orientation = simd_quatf(angle: piece.angle, axis: [0, 0, 1])
+            }
             frame.addChild(entity)
         }
-
-        let z = g.backZ + g.depth / 2
-        let innerSpan = g.width - 2 * g.board
-        // Sides and top.
-        board(g.board, g.height, g.depth, [-g.width / 2 + g.board / 2, g.height / 2, z], paint)
-        board(g.board, g.height, g.depth, [g.width / 2 - g.board / 2, g.height / 2, z], paint)
-        board(g.width, g.board, g.depth, [0, g.height - g.board / 2, z], paint)
-        // Bottom board and plinth.
-        board(innerSpan, g.board, g.depth, [0, g.plinth + g.board / 2, z], paint)
-        board(innerSpan, g.plinth, 0.02, [0, g.plinth / 2, g.frontZ - 0.01], paint)
-        // Middle divider.
-        let dividerHeight = g.height - g.plinth - 2 * g.board
-        board(g.board, dividerHeight, g.depth - 0.005, [0, g.plinth + g.board + dividerHeight / 2, z], paint)
-        // Shelves between rows.
-        for row in 0..<(BookcaseGeometry.rows - 1) {
-            board(innerSpan, g.board, g.depth - 0.005, [0, g.boardCenterY(belowRow: row), z], paint)
-        }
-        // Back panel.
-        board(g.width, g.height, 0.01, [0, g.height / 2, g.backZ + 0.005], backPaint)
         return frame
     }
 
-    static func makeCompartment(_ compartment: CompartmentSnapshot, geometry g: BookcaseGeometry) -> CompartmentBuild {
+    static func makeCompartment(_ compartment: CompartmentSnapshot, slot: CompartmentSlot) -> CompartmentBuild {
         let entity = Entity()
         entity.name = "compartment:\(compartment.index)"
-        entity.position = g.origin(of: compartment.index)
+        entity.position = slot.origin
 
         // Tap target across the back of the compartment; books in front of it are hit first.
-        let backShape = ShapeResource.generateBox(width: g.innerWidth, height: g.rowHeight, depth: 0.01)
-            .offsetBy(translation: [g.innerWidth / 2, g.rowHeight / 2, 0.005])
+        let backShape = ShapeResource.generateBox(width: slot.width, height: slot.height, depth: 0.01)
+            .offsetBy(translation: [slot.width / 2, slot.height / 2, 0.005])
         entity.components.set(CollisionComponent(shapes: [backShape]))
         entity.components.set(InputTargetComponent())
 
-        let layout = CompartmentLayout(compartment, geometry: g)
+        let layout = CompartmentLayout(compartment, slot: slot)
         var books: [UUID: Entity] = [:]
-        let front = g.localFrontZ - 0.012
+        let front = slot.depth - 0.012
         for entry in layout.entries {
             let book = entry.book
             let d = entry.dimensions
@@ -77,7 +76,7 @@ enum BookcaseFactory {
             books[book.id] = bookEntity
         }
 
-        entity.addChild(makePlate(compartment, hiddenCount: layout.hiddenCount, geometry: g))
+        entity.addChild(makePlate(compartment, hiddenCount: layout.hiddenCount, slot: slot))
         return CompartmentBuild(entity: entity, books: books)
     }
 
@@ -85,10 +84,15 @@ enum BookcaseFactory {
     nonisolated static let plateWidth: Float = 0.30
     nonisolated static let plateHeight: Float = 0.065
 
-    /// Label on the front of the shelf board under the compartment. Its top lines up with the
-    /// top of the board and it hangs down, so it never covers the books standing on the board.
-    private static func makePlate(_ compartment: CompartmentSnapshot, hiddenCount: Int, geometry g: BookcaseGeometry) -> Entity {
-        let width = plateWidth
+    /// Label width for a compartment: the standard width, narrower for small boxes.
+    nonisolated static func labelWidth(for slot: CompartmentSlot) -> Float {
+        min(plateWidth, slot.width - 0.02)
+    }
+
+    /// Label on the front edge under the compartment. Its top lines up with the compartment's
+    /// floor and it hangs down, so it never covers the books standing there.
+    private static func makePlate(_ compartment: CompartmentSnapshot, hiddenCount: Int, slot: CompartmentSlot) -> Entity {
+        let width = labelWidth(for: slot)
         let height = plateHeight
         let text: String
         if let name = compartment.name {
@@ -102,7 +106,7 @@ enum BookcaseFactory {
         }
         let plate = ModelEntity(mesh: .generatePlane(width: width, height: height, cornerRadius: 0.008), materials: [material])
         plate.name = "plate:\(compartment.index)"
-        plate.position = [g.innerWidth / 2, -height / 2, g.localFrontZ + 0.002]
+        plate.position = [slot.width / 2, -height / 2, slot.depth + 0.002]
         plate.components.set(CollisionComponent(shapes: [.generateBox(width: width, height: height, depth: 0.004)]))
         plate.components.set(InputTargetComponent())
         return plate
