@@ -79,7 +79,7 @@ The final logo is cream shelves and books on an orange (`#FFA500`) tile. Files a
 | `shelfie-logo.svg` | Clean copy with a transparent background: website, App Store page, social media, and the `Logo` image in the app |
 | `shelfie-appicon.svg` / `app-icon-1024.png` | The app icon: the same artwork filling a square (iOS adds the rounded corners) |
 
-Inside the app, the logo appears on the paywall and in the credit on the shareable shelf image, as `Image("Logo")`. The tab bar keeps the `books.vertical` symbol, because tab icons must be single-colour template symbols. Other files in `design/logo/` are earlier concepts that aren't used.
+Inside the app, the logo appears on the paywall and in the credit on the shareable shelf image, as `Image("Logo")`. The tab bar keeps the `books.vertical` symbol, because tab icons must be single-colour template symbols.
 
 ## Before submitting to the App Store
 
