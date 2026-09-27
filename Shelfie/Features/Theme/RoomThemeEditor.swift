@@ -5,7 +5,8 @@ import SwiftUI
 /// camera pulls back to show the whole room above it. Also pushed from Settings. Part of Shelfie Pro.
 struct RoomThemeEditor: View {
     enum Part: String, CaseIterable, Identifiable {
-        case bookcase = "Bookcase"
+        case design = "Design"
+        case bookcase = "Bookcase color"
         case walls = "Walls"
         case floor = "Floor"
 
@@ -13,6 +14,7 @@ struct RoomThemeEditor: View {
 
         var symbol: String {
             switch self {
+            case .design: "square.split.2x2.fill"
             case .bookcase: "books.vertical.fill"
             case .walls: "square.fill"
             case .floor: "square.grid.3x3.fill"
@@ -23,16 +25,19 @@ struct RoomThemeEditor: View {
     @AppStorage(Prefs.shelfColorKey) private var shelfID = RoomTheme.default.shelfID
     @AppStorage(Prefs.wallColorKey) private var wallID = RoomTheme.default.wallID
     @AppStorage(Prefs.floorColorKey) private var floorID = RoomTheme.default.floorID
+    @AppStorage(Prefs.bookcaseStyleKey) private var styleID = RoomTheme.default.styleID
 
-    @State private var part: Part = .bookcase
+    @State private var part: Part = .design
 
-    private var isDefault: Bool {
-        RoomTheme(shelfID: shelfID, wallID: wallID, floorID: floorID) == .default
+    private var theme: RoomTheme {
+        RoomTheme(shelfID: shelfID, wallID: wallID, floorID: floorID, styleID: styleID)
     }
+
+    private var isDefault: Bool { theme == .default }
 
     private var presets: [RoomTheme.Preset] {
         switch part {
-        case .bookcase: RoomTheme.shelfPresets
+        case .design, .bookcase: RoomTheme.shelfPresets
         case .walls: RoomTheme.wallPresets
         case .floor: RoomTheme.floorPresets
         }
@@ -40,7 +45,7 @@ struct RoomThemeEditor: View {
 
     private var selection: Binding<String> {
         switch part {
-        case .bookcase: $shelfID
+        case .design, .bookcase: $shelfID
         case .walls: $wallID
         case .floor: $floorID
         }
@@ -48,10 +53,14 @@ struct RoomThemeEditor: View {
 
     private var kind: Swatch.Kind {
         switch part {
-        case .bookcase: .shelf
+        case .design, .bookcase: .shelf
         case .walls: .wall
         case .floor: .floor
         }
+    }
+
+    private var selectedName: String {
+        part == .design ? theme.style.name : RoomTheme.resolve(selection.wrappedValue, in: presets).name
     }
 
     var body: some View {
@@ -60,23 +69,28 @@ struct RoomThemeEditor: View {
                 HStack(spacing: 12) {
                     partMenu
                     Spacer(minLength: 8)
-                    Text(RoomTheme.resolve(selection.wrappedValue, in: presets).name)
+                    Text(selectedName)
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                         .contentTransition(.opacity)
                 }
 
-                rowLabel("Classic")
-                PresetSwatchRow(presets: presets.filter { !$0.isPremium }, kind: kind, selection: selection)
-                rowLabel("Premium", systemImage: "sparkles")
-                PresetSwatchRow(presets: presets.filter(\.isPremium), kind: kind, selection: selection)
+                if part == .design {
+                    designPicker
+                } else {
+                    rowLabel("Classic")
+                    PresetSwatchRow(presets: presets.filter { !$0.isPremium }, kind: kind, selection: selection)
+                    rowLabel("Premium", systemImage: "sparkles")
+                    PresetSwatchRow(presets: presets.filter(\.isPremium), kind: kind, selection: selection)
+                }
 
-                Button("Reset to default colors") {
+                Button("Reset to default") {
                     withAnimation(.snappy) {
                         shelfID = RoomTheme.default.shelfID
                         wallID = RoomTheme.default.wallID
                         floorID = RoomTheme.default.floorID
+                        styleID = RoomTheme.default.styleID
                     }
                 }
                 .font(.subheadline.weight(.semibold))
@@ -91,6 +105,49 @@ struct RoomThemeEditor: View {
         }
         .scrollBounceBehavior(.basedOnSize)
         .animation(.snappy, value: part)
+    }
+
+    /// A card per bookcase design, each drawn with a sample shelf in the current colors.
+    private var designPicker: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 12) {
+                ForEach(BookcaseStyle.allCases) { style in
+                    let isSelected = style.rawValue == styleID
+                    let preview = RoomTheme(shelfID: shelfID, wallID: wallID, floorID: floorID, styleID: style.rawValue)
+                    let layout = style.layout
+                    Button {
+                        withAnimation(.snappy) { styleID = style.rawValue }
+                    } label: {
+                        VStack(spacing: 8) {
+                            BookcaseDrawing(snapshot: .sample, theme: preview, showsLabels: false)
+                                .aspectRatio(CGFloat(layout.width / layout.height), contentMode: .fit)
+                                .frame(width: 84, height: 104)
+                                .padding(8)
+                                .background(RoundedRectangle(cornerRadius: 14).fill(Color(hex: preview.wall.hex)))
+                                .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(isSelected ? Color.accentColor : Color.primary.opacity(0.1), lineWidth: isSelected ? 2.5 : 1))
+                            HStack(spacing: 3) {
+                                if style.isPremium {
+                                    Image(systemName: "sparkles")
+                                        .font(.caption2)
+                                        .foregroundStyle(Color.accentColor)
+                                }
+                                Text(style.name)
+                                    .font(.caption.weight(isSelected ? .semibold : .regular))
+                                    .foregroundStyle(isSelected ? .primary : .secondary)
+                                    .lineLimit(1)
+                            }
+                        }
+                        .frame(width: 108)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(style.name)
+                    .accessibilityAddTraits(isSelected ? .isSelected : [])
+                }
+            }
+            .padding(.vertical, 2)
+        }
+        .scrollClipDisabled()
     }
 
     /// Dropdown for which part of the room to color.
