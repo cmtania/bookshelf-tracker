@@ -132,6 +132,16 @@ final class RoomScene {
         applyCamera(animated: !reduceMotion)
     }
 
+    /// While the room colors sheet covers the bottom half of the screen, the camera pulls back
+    /// and tilts down to show the whole room (bookcase, walls and floor) in the top half.
+    private(set) var isPreviewingRoom = false
+
+    func setRoomPreview(_ previewing: Bool) {
+        guard previewing != isPreviewingRoom else { return }
+        isPreviewingRoom = previewing
+        applyCamera(animated: !reduceMotion)
+    }
+
     private func applyCamera(animated: Bool) {
         let target = cameraTransform()
         cameraTarget = target
@@ -149,6 +159,10 @@ final class RoomScene {
         let horizontalTan = verticalTan * viewAspect
         // Share of the screen height left after the top bar, chips and the tab bar.
         let usableHeight: Float = 0.72
+
+        if isPreviewingRoom {
+            return roomPreviewTransform(verticalTan: verticalTan, horizontalTan: horizontalTan)
+        }
 
         let center: SIMD3<Float>
         let halfWidth: Float
@@ -173,6 +187,25 @@ final class RoomScene {
         } else {
             transform.translation = [center.x, center.y, center.z + distance]
         }
+        return transform
+    }
+
+    /// Frames the bookcase plus a good margin of wall and floor in the **top half** of the screen.
+    /// The top half spans tangents 0...verticalTan above the optical axis, so the camera tilts down by
+    /// atan(verticalTan / 2): that puts the room's centre in the middle of the top half.
+    private func roomPreviewTransform(verticalTan: Float, horizontalTan: Float) -> Transform {
+        let center = SIMD3<Float>(0, geometry.height / 2, geometry.frontZ)
+        // Half-sizes of what should be visible: the bookcase with wall on both sides, and floor in front.
+        let halfWidth = geometry.width / 2 + 0.7
+        let halfHeight = geometry.height / 2 + 0.45
+        let distance = max(halfWidth / horizontalTan, halfHeight / (verticalTan / 2))
+        // Stay inside the room (it's 7 m deep), so the camera never sees past the walls' edges.
+        let maxDistance = RoomFactory.roomDepth - 0.4 - geometry.frontZ
+        let tilt = atan(verticalTan / 2)
+
+        var transform = Transform()
+        transform.translation = [center.x, center.y, center.z + min(distance, maxDistance)]
+        transform.rotation = simd_quatf(angle: -tilt, axis: [1, 0, 0])
         return transform
     }
 
