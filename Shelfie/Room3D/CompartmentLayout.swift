@@ -16,8 +16,8 @@ struct CompartmentLayout {
     let hiddenCount: Int
     let packer: ShelfPacker
 
-    init(_ compartment: CompartmentSnapshot, geometry g: BookcaseGeometry) {
-        let packer = ShelfPacker(innerWidth: g.innerWidth - 2 * Self.inset, innerHeight: g.rowHeight)
+    init(_ compartment: CompartmentSnapshot, slot: CompartmentSlot) {
+        let packer = ShelfPacker(innerWidth: slot.width - 2 * Self.inset, innerHeight: slot.height)
         let dimensions = Dictionary(
             compartment.books.map { ($0.id, BookDimensions(pages: $0.totalPages, id: $0.id)) },
             uniquingKeysWith: { first, _ in first }
