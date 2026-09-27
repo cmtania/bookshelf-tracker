@@ -32,6 +32,10 @@ final class UnlockGate {
     private(set) var lifetime: Product?
     private(set) var monthly: Product?
     private(set) var isPurchasing = false
+    /// True while prices are being fetched from the App Store.
+    private(set) var isLoadingProducts = false
+    /// True when the last fetch finished without both products (so the paywall can offer "Try again").
+    private(set) var productsUnavailable = false
     var lastError: String?
 
     var isUnlocked: Bool { activePlan != nil }
@@ -79,13 +83,27 @@ final class UnlockGate {
     }
 
     func loadProducts() async {
+        guard !isLoadingProducts else { return }
+        isLoadingProducts = true
+        defer { isLoadingProducts = false }
         do {
             let products = try await Product.products(for: Self.productIDs)
-            lifetime = products.first { $0.id == Self.lifetimeID }
-            monthly = products.first { $0.id == Self.monthlyID }
+            lifetime = products.first { $0.id == Self.lifetimeID } ?? lifetime
+            monthly = products.first { $0.id == Self.monthlyID } ?? monthly
+            #if DEBUG
+            let missing = Self.productIDs.filter { id in !products.contains { $0.id == id } }
+            if !missing.isEmpty {
+                // An ID the App Store doesn't return usually means: the Paid Apps agreement isn't
+                // active, the product isn't "Ready to Submit", or (in Xcode) the .storekit file isn't loaded.
+                print("[Shelfie] App Store returned no product for: \(missing.joined(separator: ", "))")
+            }
+            #endif
         } catch {
-            // Offline or not set up yet; the paywall shows "Loading price…" and retries.
+            #if DEBUG
+            print("[Shelfie] Loading products failed: \(error)")
+            #endif
         }
+        productsUnavailable = lifetime == nil || monthly == nil
     }
 
     func refresh() async {

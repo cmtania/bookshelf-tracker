@@ -55,11 +55,21 @@ struct PaywallView: View {
             }
             .safeAreaInset(edge: .bottom) {
                 VStack(spacing: 10) {
+                    if product(for: selected) == nil && gate.productsUnavailable && !gate.isLoadingProducts {
+                        Label("Prices aren’t available right now. Check your internet connection and try again.", systemImage: "wifi.exclamationmark")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
                     Button {
-                        buy()
+                        if product(for: selected) == nil {
+                            Task { await gate.loadProducts() }
+                        } else {
+                            buy()
+                        }
                     } label: {
                         Group {
-                            if gate.isPurchasing {
+                            if gate.isPurchasing || (gate.isLoadingProducts && product(for: selected) == nil) {
                                 ProgressView()
                             } else {
                                 Text(buyTitle)
@@ -70,7 +80,7 @@ struct PaywallView: View {
                         .frame(height: 36)
                     }
                     .buttonStyle(.glassProminent)
-                    .disabled(product(for: selected) == nil || gate.isPurchasing)
+                    .disabled(gate.isPurchasing || gate.isLoadingProducts)
 
                     Text(termsLine)
                         .font(.footnote)
@@ -198,7 +208,9 @@ struct PaywallView: View {
     }
 
     private var buyTitle: String {
-        guard let product = product(for: selected) else { return "Loading price…" }
+        guard let product = product(for: selected) else {
+            return gate.productsUnavailable ? "Try again" : "Loading price…"
+        }
         switch selected {
         case .lifetime: return "Get Lifetime for \(product.displayPrice)"
         case .monthly: return "Subscribe for \(product.displayPrice)/month"
