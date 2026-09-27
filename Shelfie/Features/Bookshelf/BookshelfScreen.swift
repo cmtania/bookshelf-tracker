@@ -205,6 +205,10 @@ struct BookshelfScreen: View {
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
             }
+            .padding(.vertical, 6)
+            .padding(.horizontal, 14)
+            // On glass, so the title stays readable over the ceiling's moulding and lights.
+            .glassEffect(.regular, in: .rect(cornerRadius: 18))
             Spacer(minLength: 8)
             // Zoomed out: room colors + share the whole shelf.
             // Zoomed into a compartment: rename it + add a book to it.
