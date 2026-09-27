@@ -31,13 +31,7 @@ enum RoomFactory {
         right.orientation = simd_quatf(angle: -.pi / 2, axis: [0, 1, 0])
         room.addChild(right)
 
-        let ceiling = ModelEntity(
-            mesh: .generatePlane(width: roomWidth, depth: roomDepth),
-            materials: [material(color: wallColor.adjustingBrightness(by: 1.04), roughness: 1)]
-        )
-        ceiling.position = [0, roomHeight, roomDepth / 2]
-        ceiling.orientation = simd_quatf(angle: .pi, axis: [1, 0, 0])
-        room.addChild(ceiling)
+        room.addChild(CeilingFactory.makeCeiling(wallHex: theme.wall.hex, backWallZ: theme.style.layout.wallFrontAtCeiling))
 
         let floor = ModelEntity(mesh: .generatePlane(width: roomWidth, depth: roomDepth), materials: [floorMaterial(theme.floor)])
         floor.position = [0, 0, roomDepth / 2]
