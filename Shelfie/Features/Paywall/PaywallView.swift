@@ -34,10 +34,10 @@ struct PaywallView: View {
                         .foregroundStyle(.secondary)
 
                     VStack(alignment: .leading, spacing: 12) {
-                        feature("infinity", "Unlimited books")
-                        feature("square.grid.2x2.fill", "All \(UnlockGate.maxCategories) bookcase compartments")
-                        feature("paintbrush.fill", "Room colors, premium finishes and floors")
-                        feature("heart.fill", "Supports an indie developer")
+                        feature("ph-infinity", "Unlimited books")
+                        feature("ph-squares-four-fill", "All \(UnlockGate.maxCategories) bookcase compartments")
+                        feature("ph-paint-brush-fill", "Room colors, premium finishes and floors")
+                        feature("ph-heart-fill", "Supports an indie developer")
                     }
                     .padding(18)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -56,7 +56,7 @@ struct PaywallView: View {
             .safeAreaInset(edge: .bottom) {
                 VStack(spacing: 10) {
                     if product(for: selected) == nil && gate.productsUnavailable && !gate.isLoadingProducts {
-                        Label("Prices aren’t available right now. Check your internet connection and try again.", systemImage: "wifi.exclamationmark")
+                        Label("Prices aren’t available right now. Check your internet connection and try again.", image: "ph-wifi-slash")
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                             .multilineTextAlignment(.center)
@@ -106,7 +106,7 @@ struct PaywallView: View {
                     Button {
                         dismiss()
                     } label: {
-                        Image(systemName: "xmark")
+                        Image("ph-x")
                     }
                     .accessibilityLabel("Close")
                 }
@@ -147,7 +147,7 @@ struct PaywallView: View {
             withAnimation(.snappy) { selected = plan }
         } label: {
             HStack(spacing: 14) {
-                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                Image(isSelected ? "ph-check-circle-fill" : "ph-circle")
                     .font(.title2)
                     .foregroundStyle(isSelected ? Color.accentColor : Color.secondary)
                 VStack(alignment: .leading, spacing: 3) {
@@ -241,11 +241,11 @@ struct PaywallView: View {
         }
     }
 
-    private func feature(_ systemImage: String, _ text: String) -> some View {
+    private func feature(_ icon: String, _ text: String) -> some View {
         Label {
             Text(text)
         } icon: {
-            Image(systemName: systemImage)
+            Image(icon)
                 .foregroundStyle(Color.accentColor)
         }
     }
