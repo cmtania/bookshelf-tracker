@@ -14,18 +14,20 @@ if (-not $edge) { throw 'Microsoft Edge not found.' }
 
 # Order = order in the App Store. The first 3 are what most people see in search results.
 $slides = @(
-  @{ out = '01-pull-a-book';  theme = 'orange'; shot = 'Simulator Screenshot - iPhone 17 Pro Max - 2026-09-28 at 19.59.48.png'
-     title = 'Pull a book off your 3D shelf';             sub = 'Tap a spine and it turns to face you. Log reading right there.' },
-  @{ out = '02-room-colors';  theme = 'cream';  shot = 'Simulator Screenshot - iPhone 17 Pro Max - 2026-09-28 at 19.58.59.png'
-     title = 'Make the room yours';                       sub = 'Bookcase designs and colors for the case, walls and floor.' },
-  @{ out = '03-share';        theme = 'orange'; shot = 'Simulator Screenshot - iPhone 17 Pro Max - 2026-09-28 at 20.00.02.png'
-     title = 'Share your shelf';                          sub = 'Turn your bookcase into a clean picture for anywhere.' },
-  @{ out = '04-shelves';      theme = 'cream';  shot = 'Simulator Screenshot - iPhone 17 Pro Max - 2026-09-28 at 19.57.07.png'
-     title = 'One compartment per category';              sub = 'Name your shelves, then fill them book by book.' },
-  @{ out = '05-welcome';      theme = 'orange'; shot = 'Simulator Screenshot - iPhone 17 Pro Max - 2026-09-28 at 19.56.53.png'
-     title = 'Set up in under a minute';                  sub = 'No account, no sign-in. Your library stays on your device.' },
-  @{ out = '06-pro';          theme = 'dark';   shot = 'Simulator Screenshot - iPhone 17 Pro Max - 2026-09-28 at 19.57.28.png'
-     title = 'Free to start. Pay once for Pro.';          sub = 'Unlimited books and every shelf, yours forever.' }
+  @{ out = '01-pull-a-book'; theme = 'orange'; shot = 'Simulator Screenshot - iPhone 17 Pro Max - 2026-09-28 at 21.27.12.png'
+     title = 'Pull a book off your 3D shelf'; sub = 'Tap a spine and it turns to face you. Log reading right there.' },
+  @{ out = '02-room-colors'; theme = 'cream'; shot = 'Simulator Screenshot - iPhone 17 Pro Max - 2026-09-28 at 19.58.59.png'
+     title = 'Make the room yours'; sub = 'Bookcase designs and colors for the case, walls and floor.' },
+  @{ out = '03-streaks'; theme = 'orange'; shot = 'Simulator Screenshot - iPhone 17 Pro Max - 2026-09-28 at 21.27.27.png'
+     title = 'A streak for every book'; sub = 'Log pages in seconds and see your week at a glance.' },
+  @{ out = '04-share'; theme = 'cream'; shot = 'Simulator Screenshot - iPhone 17 Pro Max - 2026-09-28 at 21.27.45.png'
+     title = 'Share your shelf'; sub = 'Turn your bookcase into a clean picture for anywhere.' },
+  @{ out = '05-shelves'; theme = 'orange'; shot = 'Simulator Screenshot - iPhone 17 Pro Max - 2026-09-28 at 19.57.07.png'
+     title = 'One compartment per category'; sub = 'Name your shelves, then fill them book by book.' },
+  @{ out = '06-welcome'; theme = 'cream'; shot = 'Simulator Screenshot - iPhone 17 Pro Max - 2026-09-28 at 19.56.53.png'
+     title = 'Set up in under a minute'; sub = 'No account, no sign-in. Your library stays on your device.' },
+  @{ out = '07-pro'; theme = 'dark'; shot = 'Simulator Screenshot - iPhone 17 Pro Max - 2026-09-28 at 19.57.28.png'
+     title = 'Free to start. Pay once for Pro.'; sub = 'Unlimited books and every shelf, yours forever.' }
 )
 
 # Edge writes harmless warnings to stderr; don't let them stop the script.
@@ -51,18 +53,20 @@ foreach ($s in $slides) {
 # iPad Pro simulator (portrait, Cmd+S) in raw/, listed explicitly like the iPhone set.
 $ipad = 'Simulator Screenshot - iPad Pro 13-inch (M5) - 2026-09-28 at '
 $ipadSlides = @(
-  @{ out = 'ipad-01-pull-a-book'; theme = 'orange'; shot = "${ipad}20.47.01.png"
-     title = 'Pull a book off your 3D shelf';             sub = 'Tap a spine and it turns to face you. Log reading right there.' },
-  @{ out = 'ipad-02-room-colors'; theme = 'cream';  shot = "${ipad}20.48.58.png"
-     title = 'Make the room yours';                       sub = 'Colors for the bookcase, walls and floor, including herringbone and marble.' },
-  @{ out = 'ipad-03-designs';     theme = 'orange'; shot = "${ipad}20.48.49.png"
-     title = 'Pick a bookcase design';                    sub = 'From a classic cabinet to a tree, your shelves come along.' },
-  @{ out = 'ipad-04-shelves';     theme = 'cream';  shot = "${ipad}20.45.10.png"
-     title = 'One compartment per category';              sub = 'Name your shelves, then fill them book by book.' },
-  @{ out = 'ipad-05-welcome';     theme = 'orange'; shot = "${ipad}20.44.58.png"
-     title = 'Set up in under a minute';                  sub = 'No account, no sign-in. Your library stays on your device.' },
-  @{ out = 'ipad-06-pro';         theme = 'dark';   shot = "${ipad}20.47.52.png"
-     title = 'Free to start. Pay once for Pro.';          sub = 'Unlimited books and every shelf, yours forever.' }
+  @{ out = 'ipad-01-pull-a-book'; theme = 'orange'; shot = "${ipad}21.31.11.png"
+     title = 'Pull a book off your 3D shelf'; sub = 'Tap a spine and it turns to face you. Log reading right there.' },
+  @{ out = 'ipad-02-room-colors'; theme = 'cream'; shot = "${ipad}21.23.05.png"
+     title = 'Make the room yours'; sub = 'Colors for the bookcase, walls and floor, including herringbone and marble.' },
+  @{ out = 'ipad-03-designs'; theme = 'orange'; shot = "${ipad}21.23.34.png"
+     title = 'Pick a bookcase design'; sub = 'From a classic cabinet to a tree, your shelves come along.' },
+  @{ out = 'ipad-04-streaks'; theme = 'cream'; shot = "${ipad}21.31.27.png"
+     title = 'A streak for every book'; sub = 'Log pages in seconds and see your week at a glance.' },
+  @{ out = 'ipad-05-shelves'; theme = 'orange'; shot = "${ipad}20.45.10.png"
+     title = 'One compartment per category'; sub = 'Name your shelves, then fill them book by book.' },
+  @{ out = 'ipad-06-welcome'; theme = 'cream'; shot = "${ipad}20.44.58.png"
+     title = 'Set up in under a minute'; sub = 'No account, no sign-in. Your library stays on your device.' },
+  @{ out = 'ipad-07-pro'; theme = 'dark'; shot = "${ipad}21.24.49.png"
+     title = 'Free to start. Pay once for Pro.'; sub = 'Unlimited books and every shelf, yours forever.' }
 )
 foreach ($s in $ipadSlides) {
   if (-not (Test-Path -LiteralPath (Join-Path $here "raw\$($s.shot)"))) { Write-Host "missing raw/$($s.shot), skipped $($s.out)"; continue }
