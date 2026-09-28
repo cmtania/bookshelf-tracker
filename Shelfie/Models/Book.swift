@@ -16,9 +16,9 @@ enum ReadingStatus: String, Codable, CaseIterable, Identifiable {
 
     var symbol: String {
         switch self {
-        case .wantToRead: "bookmark"
-        case .reading: "book"
-        case .finished: "checkmark.circle"
+        case .wantToRead: "ph-bookmark-simple"
+        case .reading: "ph-book-open"
+        case .finished: "ph-check-circle"
         }
     }
 }
