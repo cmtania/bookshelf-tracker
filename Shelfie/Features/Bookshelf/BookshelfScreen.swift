@@ -82,7 +82,8 @@ struct BookshelfScreen: View {
 
     private var themeEditor: some View {
         NavigationStack {
-            RoomThemeEditor()
+            // In the tall iPad panel, the options wrap into a grid instead of scrolling sideways.
+            RoomThemeEditor(wrapsOptions: usesSidePanel)
                 .navigationTitle("Room colors")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
