@@ -21,7 +21,7 @@ struct ResetDataSheet: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
                     HStack(spacing: 14) {
-                        Image(systemName: "exclamationmark.triangle.fill")
+                        Image("ph-warning-fill")
                             .font(.title)
                             .foregroundStyle(.red)
                             .frame(width: 52, height: 52)
@@ -38,10 +38,10 @@ struct ResetDataSheet: View {
                     VStack(alignment: .leading, spacing: 10) {
                         Text("This deletes, from this iPhone:")
                             .font(.subheadline.weight(.semibold))
-                        deletedRow("books.vertical", "Every book on your shelf")
-                        deletedRow("square.grid.2x2", "All your categories")
-                        deletedRow("note.text", "All notes")
-                        deletedRow("calendar", "Every reading session and streak")
+                        deletedRow("ph-books", "Every book on your shelf")
+                        deletedRow("ph-squares-four", "All your categories")
+                        deletedRow("ph-notepad", "All notes")
+                        deletedRow("ph-calendar-dots", "Every reading session and streak")
                         Text("You’ll start again with an empty bookcase. Your Shelfie Pro purchase and your settings are kept.")
                             .font(.footnote)
                             .foregroundStyle(.secondary)
@@ -101,7 +101,7 @@ struct ResetDataSheet: View {
                     Button {
                         dismiss()
                     } label: {
-                        Image(systemName: "xmark")
+                        Image("ph-x")
                     }
                     .accessibilityLabel("Close")
                 }
@@ -115,7 +115,7 @@ struct ResetDataSheet: View {
         Label {
             Text(text)
         } icon: {
-            Image(systemName: symbol)
+            Image(symbol)
                 .foregroundStyle(.red)
         }
         .font(.subheadline)
