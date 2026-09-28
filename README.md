@@ -11,6 +11,7 @@ A reading tracker for iPhone. Your books sit in a real 3D bookcase in a room you
   - Reading books stick out with a ribbon, and want-to-read books lie flat.
   - When zoomed out, the top bar has room colors and share. When zoomed in, it has rename and add book.
 - **Books:** title, author, page count, category, status (Want to read / Reading / Finished), spine color, daily page goal, notes and reading sessions.
+- **Log reading:** the book's screen shows a small cover, progress ring and streak tiles, with **Log reading** pinned to the bottom. Saving a session is celebrated with a glass card, a bouncing flame and a haptic; streak milestones (3, 7, 14, 30… days) and finishing a book get their own message (`ReadingCelebration.swift`).
 - **Streaks:** per book, per category and overall. A streak counts the days in a row with at least one logged session, and it doesn't break until the day is over.
 - **Categories tab:** one card per category, with its position on the bookcase, books by status, pages progress, what's being read and its streak. You can add, reorder (which moves the compartments), rename, recolor and delete (only when empty).
 - **Calendar tab:** opens on the current week and expands to the month (tap the title or handle, or swipe). Each day shows dots in spine colors, and tapping a day shows its sessions.
@@ -18,7 +19,7 @@ A reading tracker for iPhone. Your books sit in a real 3D bookcase in a room you
 - **Share your shelf:** a 1080 × 1350 picture of the bookcase alone (no room), made in 2D from the same layout.
 - **Reminders:** local notifications only. There's a daily reminder, plus a "streak at risk" alert at 8 PM.
 - **Onboarding:** 4 skippable pages on first launch (welcome, name your 3 shelves, logging and streaks, reminders). It has no paywall.
-- **Settings:** Pro status and management, reminders, **Reset all data** (type CONFIRM; it brings back onboarding), and **About Shelfie**. The About sheet shows the logo, name, version, Help & FAQ, Privacy Policy, Terms of Service and contact support. Room colors are only on the Bookshelf tab (the paintbrush).
+- **Settings:** Pro status and management, **Appearance** (System, Light or Dark), reminders, sound effects, **Reset all data** (type CONFIRM; it brings back onboarding), and **About Shelfie**. The About sheet shows the logo, name, version, Help & FAQ, Privacy Policy, Terms of Service and contact support. Room colors are only on the Bookshelf tab (the paintbrush).
 - **Money:** free for up to 10 books in 3 categories. **Shelfie Pro** gives unlimited books, all 10 compartments and room colors. It comes as **Pro Lifetime** (one-time, ₱249) or **Pro Monthly** (auto-renewing, ₱59/month). The paywall pre-selects Lifetime and shows how many months it takes to pay for itself.
 
 It needs no account, no server and no third-party SDKs. All data stays on the device.
