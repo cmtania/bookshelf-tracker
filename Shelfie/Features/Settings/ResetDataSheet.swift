@@ -97,13 +97,11 @@ struct ResetDataSheet: View {
                 .background(.bar)
             }
             .toolbar {
+                // The system close button: a custom image in a toolbar didn't render.
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button {
+                    Button(role: .close) {
                         dismiss()
-                    } label: {
-                        Image("ph-x")
                     }
-                    .accessibilityLabel("Close")
                 }
             }
             .onAppear { fieldFocused = true }
