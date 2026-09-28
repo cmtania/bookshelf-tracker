@@ -16,6 +16,11 @@ struct SettingsScreen: View {
     @State private var showingAbout = false
     @State private var managingSubscription = false
     @State private var confirmingReset = false
+    /// What the user typed in the Reset alert; it must be CONFIRM.
+    @State private var resetWord = ""
+    @State private var resetRefused = false
+
+    static let resetConfirmationWord = "CONFIRM"
 
     // Categories are managed in their own tab (CategoriesScreen).
     var body: some View {
@@ -32,10 +37,26 @@ struct SettingsScreen: View {
             .sheet(isPresented: $showingAbout) {
                 AboutSheet()
             }
-            .sheet(isPresented: $confirmingReset) {
-                ResetDataSheet {
-                    Task { await DataReset.eraseLibrary(context) }
+            // Same as BuzzBee's Reset All Data: a centred alert where the user types CONFIRM.
+            .alert("Reset all data?", isPresented: $confirmingReset) {
+                TextField(Self.resetConfirmationWord, text: $resetWord)
+                    .textInputAutocapitalization(.characters)
+                    .autocorrectionDisabled()
+                Button("Cancel", role: .cancel) {}
+                Button("Reset Everything", role: .destructive) {
+                    if resetWord.trimmingCharacters(in: .whitespacesAndNewlines).uppercased() == Self.resetConfirmationWord {
+                        Task { await DataReset.eraseLibrary(context) }
+                    } else {
+                        resetRefused = true
+                    }
                 }
+            } message: {
+                Text("This deletes every book, category, note, reading session and streak on this device, and can’t be undone. Your Shelfie Pro purchase and settings are kept.\n\nType \(Self.resetConfirmationWord) to continue.")
+            }
+            .alert("Not reset", isPresented: $resetRefused) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text("You need to type \(Self.resetConfirmationWord) exactly to reset your data.")
             }
             .sheet(isPresented: $showingPaywall) {
                 PaywallView()
@@ -165,6 +186,7 @@ struct SettingsScreen: View {
     private var dataSection: some View {
         Section {
             Button(role: .destructive) {
+                resetWord = ""
                 confirmingReset = true
             } label: {
                 Label("Reset all data", image: "ph-trash")
