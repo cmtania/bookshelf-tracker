@@ -95,7 +95,7 @@ SHARE YOUR SHELF
 PRIVATE BY DESIGN
 • No account and no sign-in
 • No ads, no analytics, no tracking
-• Your library stays on your iPhone
+• Your library stays on your iPhone or iPad
 
 SHELFIE PRO
 Free for up to 10 books in 3 categories. Shelfie Pro adds:
@@ -203,7 +203,7 @@ To see the paywall: Settings tab > "Get Shelfie Pro", or tap the paintbrush on t
 NOTIFICATIONS
 Reminders are local notifications only (daily reminder and an evening streak alert). The permission is requested during onboarding or when turning reminders on, and is optional.
 
-The 3D bookshelf uses RealityKit and runs on any iPhone that supports iOS 26.
+The 3D bookshelf uses RealityKit and runs on any iPhone or iPad that supports iOS or iPadOS 26.
 ```
 
 ---
