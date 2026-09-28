@@ -25,7 +25,7 @@ struct BookDetailView: View {
                     Button {
                         logging = true
                     } label: {
-                        Label("Log reading", systemImage: "plus")
+                        Label("Log reading", image: "ph-plus")
                             .font(.headline)
                             .frame(maxWidth: .infinity)
                             .frame(minHeight: 36)
@@ -97,7 +97,7 @@ struct BookDetailView: View {
         let best = streaks.bestStreak(dates)
         let readToday = streaks.readToday(dates)
         return HStack(spacing: 12) {
-            Image(systemName: "flame.fill")
+            Image("ph-flame-fill")
                 .font(.title2)
                 .foregroundStyle(current > 0 ? Color.orange : Color.secondary)
             VStack(alignment: .leading, spacing: 2) {
@@ -146,7 +146,7 @@ struct BookDetailView: View {
             Button {
                 addingNote = true
             } label: {
-                Label("Add note", systemImage: "square.and.pencil")
+                Label("Add note", image: "ph-note-pencil")
             }
         }
     }
