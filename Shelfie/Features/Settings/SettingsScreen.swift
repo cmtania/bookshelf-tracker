@@ -9,6 +9,7 @@ struct SettingsScreen: View {
     @AppStorage(Prefs.remindersEnabledKey) private var remindersEnabled = true
     @AppStorage(Prefs.reminderMinutesKey) private var reminderMinutes = Prefs.defaultReminderMinutes
     @AppStorage(Prefs.streakAlertEnabledKey) private var streakAlertEnabled = true
+    @AppStorage(Prefs.soundEffectsEnabledKey) private var soundEffectsEnabled = true
 
     @State private var showingPaywall = false
     @State private var showingAbout = false
@@ -21,6 +22,7 @@ struct SettingsScreen: View {
             List {
                 unlockSection
                 remindersSection
+                soundSection
                 dataSection
                 aboutSection
             }
@@ -130,6 +132,14 @@ struct SettingsScreen: View {
             Text("Reminders")
         } footer: {
             Text("The streak alert comes at 8 PM when a book you're reading has a streak but no reading logged that day.")
+        }
+    }
+
+    private var soundSection: some View {
+        Section {
+            Toggle("Sound effects", isOn: $soundEffectsEnabled)
+        } footer: {
+            Text("A soft sound when you take a book off the shelf. It follows your silent switch.")
         }
     }
 
