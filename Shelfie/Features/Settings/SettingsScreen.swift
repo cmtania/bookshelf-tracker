@@ -10,6 +10,7 @@ struct SettingsScreen: View {
     @AppStorage(Prefs.reminderMinutesKey) private var reminderMinutes = Prefs.defaultReminderMinutes
     @AppStorage(Prefs.streakAlertEnabledKey) private var streakAlertEnabled = true
     @AppStorage(Prefs.soundEffectsEnabledKey) private var soundEffectsEnabled = true
+    @AppStorage(Prefs.appearanceKey) private var appearance = AppAppearance.system
 
     @State private var showingPaywall = false
     @State private var showingAbout = false
@@ -21,6 +22,7 @@ struct SettingsScreen: View {
         NavigationStack {
             List {
                 unlockSection
+                appearanceSection
                 remindersSection
                 soundSection
                 dataSection
@@ -132,6 +134,23 @@ struct SettingsScreen: View {
             Text("Reminders")
         } footer: {
             Text("The streak alert comes at 8 PM when a book you're reading has a streak but no reading logged that day.")
+        }
+    }
+
+    private var appearanceSection: some View {
+        Section {
+            Picker("Appearance", selection: $appearance) {
+                ForEach(AppAppearance.allCases) { option in
+                    Text(option.title).tag(option)
+                }
+            }
+            .pickerStyle(.segmented)
+            .listRowBackground(Color.clear)
+            .listRowInsets(EdgeInsets())
+        } header: {
+            Text("Appearance")
+        } footer: {
+            Text("System follows your device’s Light or Dark setting. Your room keeps its own colors.")
         }
     }
 
