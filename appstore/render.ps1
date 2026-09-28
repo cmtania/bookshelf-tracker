@@ -47,18 +47,24 @@ foreach ($s in $slides) {
   Render 'template.html' '1320,2868' $s.shot $s (Join-Path $final "$($s.out).png")
 }
 
-# 13" iPad, 2064 x 2752 (required because the app supports iPad). Take the same screens, in the
-# same order as $slides, in the 13-inch iPad Pro simulator (portrait, Cmd+S) and put them in raw/.
-# Their file names contain "iPad", and they're paired with the captions above by time taken.
-$ipadShots = @(Get-ChildItem (Join-Path $here 'raw') -Filter '*iPad*.png' | Sort-Object Name)
-if ($ipadShots.Count -eq 0) {
-  Write-Host 'No iPad captures in raw/ yet, so no iPad screenshots were made.'
-} else {
-  if ($ipadShots.Count -ne $slides.Count) {
-    Write-Host "Note: $($ipadShots.Count) iPad captures for $($slides.Count) captions; pairing the first $([Math]::Min($ipadShots.Count, $slides.Count))."
-  }
-  for ($i = 0; $i -lt [Math]::Min($ipadShots.Count, $slides.Count); $i++) {
-    $s = $slides[$i]
-    Render 'template-ipad.html' '2064,2752' $ipadShots[$i].Name $s (Join-Path $final "ipad-$($s.out).png")
-  }
+# 13" iPad, 2064 x 2752 (required because the app supports iPad). Captures from the 13-inch
+# iPad Pro simulator (portrait, Cmd+S) in raw/, listed explicitly like the iPhone set.
+$ipad = 'Simulator Screenshot - iPad Pro 13-inch (M5) - 2026-09-28 at '
+$ipadSlides = @(
+  @{ out = 'ipad-01-pull-a-book'; theme = 'orange'; shot = "${ipad}20.47.01.png"
+     title = 'Pull a book off your 3D shelf';             sub = 'Tap a spine and it turns to face you. Log reading right there.' },
+  @{ out = 'ipad-02-room-colors'; theme = 'cream';  shot = "${ipad}20.48.58.png"
+     title = 'Make the room yours';                       sub = 'Colors for the bookcase, walls and floor, including herringbone and marble.' },
+  @{ out = 'ipad-03-designs';     theme = 'orange'; shot = "${ipad}20.48.49.png"
+     title = 'Pick a bookcase design';                    sub = 'From a classic cabinet to a tree, your shelves come along.' },
+  @{ out = 'ipad-04-shelves';     theme = 'cream';  shot = "${ipad}20.45.10.png"
+     title = 'One compartment per category';              sub = 'Name your shelves, then fill them book by book.' },
+  @{ out = 'ipad-05-welcome';     theme = 'orange'; shot = "${ipad}20.44.58.png"
+     title = 'Set up in under a minute';                  sub = 'No account, no sign-in. Your library stays on your device.' },
+  @{ out = 'ipad-06-pro';         theme = 'dark';   shot = "${ipad}20.47.52.png"
+     title = 'Free to start. Pay once for Pro.';          sub = 'Unlimited books and every shelf, yours forever.' }
+)
+foreach ($s in $ipadSlides) {
+  if (-not (Test-Path -LiteralPath (Join-Path $here "raw\$($s.shot)"))) { Write-Host "missing raw/$($s.shot), skipped $($s.out)"; continue }
+  Render 'template-ipad.html' '2064,2752' $s.shot $s (Join-Path $final "$($s.out).png")
 }
