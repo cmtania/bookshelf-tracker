@@ -40,7 +40,7 @@ struct CategoriesScreen: View {
             .overlay {
                 if categories.isEmpty {
                     ContentUnavailableView {
-                        Label("No categories yet", systemImage: "square.grid.2x2")
+                        Label("No categories yet", image: "ph-squares-four")
                     } description: {
                         Text("Each category is one compartment of your bookcase.")
                     } actions: {
@@ -58,7 +58,7 @@ struct CategoriesScreen: View {
                         Button {
                             requestAddCategory()
                         } label: {
-                            Image(systemName: "plus")
+                            Image("ph-plus")
                         }
                         .accessibilityLabel("Add category")
                     }
@@ -186,7 +186,7 @@ private struct CategoryCard: View {
                 }
                 Spacer(minLength: 8)
                 if stats.streak > 0 {
-                    Label("\(stats.streak)", systemImage: "flame.fill")
+                    Label("\(stats.streak)", image: "ph-flame-fill")
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(.orange)
                         .accessibilityLabel("\(stats.streak)-day streak")
@@ -199,10 +199,10 @@ private struct CategoryCard: View {
                     .foregroundStyle(.secondary)
             } else {
                 HStack(spacing: 6) {
-                    countChip("\(stats.bookCount)", stats.bookCount == 1 ? "book" : "books", systemImage: "books.vertical")
-                    if stats.reading > 0 { countChip("\(stats.reading)", "reading", systemImage: "book") }
-                    if stats.finished > 0 { countChip("\(stats.finished)", "done", systemImage: "checkmark.circle") }
-                    if stats.wantToRead > 0 { countChip("\(stats.wantToRead)", "to read", systemImage: "bookmark") }
+                    countChip("\(stats.bookCount)", stats.bookCount == 1 ? "book" : "books", icon: "ph-books")
+                    if stats.reading > 0 { countChip("\(stats.reading)", "reading", icon: "ph-book-open") }
+                    if stats.finished > 0 { countChip("\(stats.finished)", "done", icon: "ph-check-circle") }
+                    if stats.wantToRead > 0 { countChip("\(stats.wantToRead)", "to read", icon: "ph-bookmark-simple") }
                 }
 
                 VStack(alignment: .leading, spacing: 4) {
@@ -218,11 +218,11 @@ private struct CategoryCard: View {
                         Text("Now reading **\(book.title)** · p. \(book.currentPage)")
                             .lineLimit(1)
                     } icon: {
-                        Image(systemName: "bookmark.fill").foregroundStyle(color)
+                        Image("ph-bookmark-simple-fill").foregroundStyle(color)
                     }
                     .font(.caption)
                 } else if let last = stats.lastRead {
-                    Label("Last read \(last.formatted(.relative(presentation: .named)))", systemImage: "clock")
+                    Label("Last read \(last.formatted(.relative(presentation: .named)))", image: "ph-clock")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -231,9 +231,9 @@ private struct CategoryCard: View {
         .padding(.vertical, 6)
     }
 
-    private func countChip(_ value: String, _ label: String, systemImage: String) -> some View {
+    private func countChip(_ value: String, _ label: String, icon: String) -> some View {
         HStack(spacing: 3) {
-            Image(systemName: systemImage)
+            Image(icon)
             Text("\(value) \(label)")
         }
         .font(.caption2.weight(.medium))
