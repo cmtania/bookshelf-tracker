@@ -36,14 +36,14 @@ struct CalendarScreen: View {
         let streak = StreakCalculator().currentStreak(sessions.map(\.date))
         return HStack(spacing: 0) {
             stat(
-                systemImage: "book.fill",
+                icon: "ph-book-open-fill",
                 tint: .accentColor,
                 value: "\(pagesInVisiblePeriod)",
                 label: expanded ? "pages in \(anchor.formatted(.dateTime.month(.wide)))" : "pages this week"
             )
             Divider().frame(height: 28)
             stat(
-                systemImage: "flame.fill",
+                icon: "ph-flame-fill",
                 tint: .orange,
                 value: "\(streak)",
                 label: "day streak"
@@ -53,9 +53,9 @@ struct CalendarScreen: View {
         .background(RoundedRectangle(cornerRadius: 16).fill(Color(.secondarySystemGroupedBackground)))
     }
 
-    private func stat(systemImage: String, tint: Color, value: String, label: String) -> some View {
+    private func stat(icon: String, tint: Color, value: String, label: String) -> some View {
         HStack(spacing: 8) {
-            Image(systemName: systemImage)
+            Image(icon)
                 .font(.subheadline)
                 .foregroundStyle(tint)
             Text(value)
@@ -79,7 +79,7 @@ struct CalendarScreen: View {
                 Button {
                     shift(-1)
                 } label: {
-                    Image(systemName: "chevron.left").frame(width: 44, height: 44)
+                    Image("ph-caret-left").frame(width: 44, height: 44)
                 }
                 .accessibilityLabel(expanded ? "Previous month" : "Previous week")
 
@@ -90,7 +90,7 @@ struct CalendarScreen: View {
                         Text(periodTitle)
                             .font(.headline)
                             .foregroundStyle(.primary)
-                        Image(systemName: "chevron.down")
+                        Image("ph-caret-down")
                             .font(.caption.weight(.bold))
                             .foregroundStyle(.secondary)
                             .rotationEffect(.degrees(expanded ? 180 : 0))
@@ -105,7 +105,7 @@ struct CalendarScreen: View {
                 Button {
                     shift(1)
                 } label: {
-                    Image(systemName: "chevron.right").frame(width: 44, height: 44)
+                    Image("ph-caret-right").frame(width: 44, height: 44)
                 }
                 .accessibilityLabel(expanded ? "Next month" : "Next week")
             }
