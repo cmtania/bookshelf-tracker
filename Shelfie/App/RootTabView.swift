@@ -14,16 +14,16 @@ struct RootTabView: View {
 
     var body: some View {
         TabView(selection: $tab) {
-            Tab("Bookshelf", systemImage: "books.vertical.fill", value: .shelf) {
+            Tab("Bookshelf", image: "ph-books-fill", value: .shelf) {
                 BookshelfScreen()
             }
-            Tab("Categories", systemImage: "square.grid.2x2.fill", value: .categories) {
+            Tab("Categories", image: "ph-squares-four-fill", value: .categories) {
                 CategoriesScreen()
             }
-            Tab("Calendar", systemImage: "calendar", value: .calendar) {
+            Tab("Calendar", image: "ph-calendar-dots-fill", value: .calendar) {
                 CalendarScreen()
             }
-            Tab("Settings", systemImage: "gearshape.fill", value: .settings) {
+            Tab("Settings", image: "ph-gear-six-fill", value: .settings) {
                 SettingsScreen()
             }
         }
