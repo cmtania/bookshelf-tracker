@@ -1,7 +1,7 @@
 import AVFoundation
 
 /// Short interface sounds. They use the "ambient" audio session: they mix with the user's music
-/// instead of stopping it, and stay quiet when the silent switch is on.
+/// instead of stopping it, and stay quiet in Silent Mode.
 /// Turned off with Settings > Sound effects.
 @MainActor
 enum SoundEffects {
