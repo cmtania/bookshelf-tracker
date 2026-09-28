@@ -26,7 +26,7 @@ It needs no account, no server and no third-party SDKs. All data stays on the de
 ## Requirements
 
 - A Mac with **Xcode 26** or later
-- iOS **26** or later (it uses Liquid Glass). The app is iPhone only.
+- iOS / iPadOS **26** or later (it uses Liquid Glass). The app runs on iPhone (portrait) and iPad (any orientation, Split View and resizable windows). On iPad, room colors open in a side panel next to the room, and the book card, calendar and onboarding keep a readable width.
 - [XcodeGen](https://github.com/yonaskolb/XcodeGen), which generates the Xcode project from `project.yml`
 
 ## Getting started
