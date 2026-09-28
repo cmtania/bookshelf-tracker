@@ -22,7 +22,10 @@ struct CalendarScreen: View {
                     calendarCard(byDay)
                     dayList(byDay[selectedDay] ?? [])
                 }
+                // A readable column on iPad, so the month grid's days don't turn into wide tiles.
+                .frame(maxWidth: 640)
                 .padding(16)
+                .frame(maxWidth: .infinity)
             }
             .background(Color(.systemGroupedBackground))
             .navigationTitle("Calendar")
