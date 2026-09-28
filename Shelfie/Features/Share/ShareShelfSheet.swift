@@ -30,7 +30,7 @@ struct ShareShelfSheet: View {
                         item: Image(uiImage: image),
                         preview: SharePreview("My Bookshelf", image: Image(uiImage: image))
                     ) {
-                        Label("Share", systemImage: "square.and.arrow.up")
+                        Label("Share", image: "ph-export")
                             .font(.headline)
                             .frame(maxWidth: .infinity)
                             .frame(minHeight: 36)
