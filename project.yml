@@ -42,10 +42,13 @@ targets:
         INFOPLIST_KEY_CFBundleDisplayName: Shelfie
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.books
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: UIInterfaceOrientationPortrait
+        # iPad: every orientation, so the app works in Split View, Stage Manager and resizable windows.
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
         INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO
         # Needed for "Save Image" in the share sheet when sharing the shelf picture.
         INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription: "Shelfie saves the picture of your bookshelf to your photo library when you choose Save Image."
-        TARGETED_DEVICE_FAMILY: "1"
+        # iPhone and iPad.
+        TARGETED_DEVICE_FAMILY: "1,2"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         ENABLE_PREVIEWS: YES
