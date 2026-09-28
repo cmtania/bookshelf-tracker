@@ -31,12 +31,12 @@
   h1 { margin: 0; font-size: 128px; line-height: 1.06; font-weight: 800; letter-spacing: -3.5px; }
   p  { margin: 36px auto 0; max-width: 1500px; font-size: 60px; line-height: 1.3; font-weight: 500; opacity: 0.78; }
 
-  /* iPad frame around the screenshot: thin, even bezel; bleeds off the bottom edge. */
+  /* iPad frame around the screenshot: thin, even bezel; the whole screen fits below the caption. */
   .ipad {
     position: absolute;
     left: 50%;
     top: 700px;
-    width: 1640px;
+    width: 1460px; /* content width; with the 30px bezel the frame ends at 2707px, inside 2752 */
     transform: translateX(-50%);
     padding: 30px;
     border-radius: 96px;
