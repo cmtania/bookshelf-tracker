@@ -54,18 +54,18 @@ struct SettingsScreen: View {
         Section {
             switch gate.activePlan {
             case .lifetime:
-                Label("Shelfie Pro · Lifetime. Thank you!", systemImage: "checkmark.seal.fill")
+                Label("Shelfie Pro · Lifetime. Thank you!", image: "ph-seal-check-fill")
                     .foregroundStyle(Color.accentColor)
                 if gate.hasMonthlySubscription {
                     // Bought Lifetime while subscribed: the subscription keeps renewing until cancelled.
                     Button {
                         managingSubscription = true
                     } label: {
-                        Label("You still have a monthly subscription. Cancel it here.", systemImage: "exclamationmark.circle")
+                        Label("You still have a monthly subscription. Cancel it here.", image: "ph-warning-circle")
                     }
                 }
             case .monthly:
-                Label("Shelfie Pro · Monthly", systemImage: "checkmark.seal.fill")
+                Label("Shelfie Pro · Monthly", image: "ph-seal-check-fill")
                     .foregroundStyle(Color.accentColor)
                 Button {
                     showingPaywall = true
@@ -138,7 +138,7 @@ struct SettingsScreen: View {
             Button(role: .destructive) {
                 confirmingReset = true
             } label: {
-                Label("Reset all data", systemImage: "trash")
+                Label("Reset all data", image: "ph-trash")
             }
         } header: {
             Text("Data")
@@ -162,7 +162,7 @@ struct SettingsScreen: View {
                     Text("About Shelfie")
                         .foregroundStyle(.primary)
                     Spacer()
-                    Image(systemName: "chevron.right")
+                    Image("ph-caret-right")
                         .font(.footnote.weight(.semibold))
                         .foregroundStyle(.tertiary)
                 }
