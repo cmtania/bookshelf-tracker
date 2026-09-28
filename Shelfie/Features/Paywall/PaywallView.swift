@@ -50,8 +50,11 @@ struct PaywallView: View {
                         }
                     }
                 }
+                // A readable column on iPad's wider page sheet.
+                .frame(maxWidth: 560)
                 .padding(.horizontal, 24)
                 .padding(.bottom, 16)
+                .frame(maxWidth: .infinity)
             }
             .safeAreaInset(edge: .bottom) {
                 VStack(spacing: 10) {
@@ -97,8 +100,10 @@ struct PaywallView: View {
                     }
                     .font(.footnote)
                 }
+                .frame(maxWidth: 560)
                 .padding(.horizontal, 24)
                 .padding(.vertical, 12)
+                .frame(maxWidth: .infinity)
                 .background(.bar)
             }
             .toolbar {
@@ -135,6 +140,9 @@ struct PaywallView: View {
                 }
             }
         }
+        // On iPad a normal sheet is short, and Monthly ended up hidden under the Buy bar.
+        // A page sheet is tall enough to show both plans (on iPhone it's the usual sheet).
+        .presentationSizing(.page)
     }
 
     // MARK: Plans
