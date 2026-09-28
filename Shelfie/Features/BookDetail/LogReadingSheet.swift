@@ -12,6 +12,8 @@ struct LogReadingSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var context
     let book: Book
+    /// Called after saving, with what to celebrate (pages gained, streak, finished).
+    var onLogged: (LoggedReading) -> Void = { _ in }
 
     @State private var mode: Mode = .pageReached
     @State private var value: Int?
@@ -64,7 +66,9 @@ struct LogReadingSheet: View {
 
                 if reachesEnd {
                     Section {
-                        Toggle("Mark as finished 🎉", isOn: $markFinished)
+                        Toggle(isOn: $markFinished) {
+                            Label("Mark as finished", image: "ph-seal-check-fill")
+                        }
                     }
                 }
             }
@@ -87,6 +91,9 @@ struct LogReadingSheet: View {
     private func save() {
         let target = max(book.currentPage, newPage)
         let finishing = reachesEnd && markFinished
+        let streaks = StreakCalculator()
+        let previousStreak = streaks.currentStreak(book.sessionDates)
+        let gained = pagesGained
         let session = ReadingSession(date: date, fromPage: book.currentPage, toPage: target, minutes: minutes.flatMap { $0 > 0 ? $0 : nil })
         context.insert(session)
         session.book = book
@@ -99,6 +106,15 @@ struct LogReadingSheet: View {
         }
         try? context.save()
         Task { await ReminderScheduler.reschedule(context: context) }
+        // Include this session's date even if the relationship hasn't caught up yet.
+        let dates = book.sessionDates
+        onLogged(LoggedReading(
+            pagesGained: gained,
+            previousStreak: previousStreak,
+            streak: streaks.currentStreak(dates.contains(date) ? dates : dates + [date]),
+            finishedTitle: finishing ? book.title : nil,
+            totalPages: book.totalPages
+        ))
         dismiss()
     }
 }
