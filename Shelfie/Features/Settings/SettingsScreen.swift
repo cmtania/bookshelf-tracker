@@ -139,7 +139,7 @@ struct SettingsScreen: View {
         Section {
             Toggle("Sound effects", isOn: $soundEffectsEnabled)
         } footer: {
-            Text("A soft sound when you take a book off the shelf. It follows your silent switch.")
+            Text("A soft sound when you take a book off the shelf. It stays quiet in Silent Mode.")
         }
     }
 
@@ -153,7 +153,7 @@ struct SettingsScreen: View {
         } header: {
             Text("Data")
         } footer: {
-            Text("Start over with an empty bookcase. Your library is stored only on this iPhone, so it can’t be recovered afterwards.")
+            Text("Start over with an empty bookcase. Your library is stored only on this device, so it can’t be recovered afterwards.")
         }
     }
 
