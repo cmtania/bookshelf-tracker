@@ -161,11 +161,13 @@ final class RoomScene {
 
     /// While room colors are being edited, the camera pulls back to show the whole room
     /// (bookcase, walls and floor) wherever the editor leaves it visible.
-    enum RoomPreview {
+    enum RoomPreview: Equatable {
         /// iPhone: the colors sheet covers the bottom half, so the room is framed in the top half.
         case topHalf
-        /// iPad: the colors panel sits beside the room, so the room fills the whole view.
-        case wholeView
+        /// iPad: the colors panel sits beside the room. `coveredTrailing` is the share of the view's
+        /// width the panel covers on the right (0 when the view is resized to make room for it);
+        /// the room is centred in what's left.
+        case wholeView(coveredTrailing: Float)
     }
 
     private(set) var roomPreview: RoomPreview?
@@ -309,7 +311,9 @@ final class RoomScene {
     /// Frames the bookcase plus a good margin of wall and floor.
     /// - Top half: that half spans tangents 0...verticalTan above the optical axis, so the camera tilts
     ///   down by atan(verticalTan / 2), which puts the room's centre in the middle of the top half.
-    /// - Whole view: the room is centred, seen from a little above so some floor shows.
+    /// - Whole view: the room is centred in the part of the view the panel doesn't cover, seen from a
+    ///   little above so some floor shows. The visible part spans -1...(1 - 2c) across the view, so its
+    ///   middle is at -c: moving the camera right by c * tangent * distance puts the room there.
     private func roomPreviewTransform(_ preview: RoomPreview, verticalTan: Float, horizontalTan: Float) -> Transform {
         let center = layout.center
         // Half-sizes of what should be visible: the bookcase with wall on both sides, and floor in front.
@@ -325,11 +329,14 @@ final class RoomScene {
             let tilt = atan(verticalTan / 2)
             transform.translation = [center.x, center.y, center.z + min(distance, maxDistance)]
             transform.rotation = simd_quatf(angle: -tilt, axis: [1, 0, 0])
-        case .wholeView:
-            let distance = min(max(halfWidth / horizontalTan, halfHeight / (verticalTan * 0.9)), maxDistance)
+        case .wholeView(let coveredTrailing):
+            let covered = min(max(coveredTrailing, 0), 0.6)
+            let visibleTan = horizontalTan * (1 - covered)
+            let distance = min(max(halfWidth / visibleTan, halfHeight / (verticalTan * 0.9)), maxDistance)
             let tilt: Float = 0.12
             transform.rotation = simd_quatf(angle: -tilt, axis: [1, 0, 0])
             transform.translation = center + transform.rotation.act(SIMD3(0, 0, distance))
+            transform.translation.x += covered * horizontalTan * distance
         }
         return transform
     }
