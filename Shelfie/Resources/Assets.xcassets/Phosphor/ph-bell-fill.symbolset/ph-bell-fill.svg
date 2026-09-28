@@ -15,11 +15,11 @@
     <line id="Baseline-L" style="fill:none;stroke:#27AAE1;opacity:1;stroke-width:0.5;" x1="263" y1="1556" x2="3036" y2="1556"/>
     <line id="Capline-L" style="fill:none;stroke:#27AAE1;opacity:1;stroke-width:0.5;" x1="263" y1="1485.54" x2="3036" y2="1485.54"/>
     <line id="left-margin-Regular-M" style="fill:none;stroke:#27AAE1;opacity:1;stroke-width:0.5;" x1="1391.3" y1="1030.79" x2="1391.3" y2="1150.12"/>
-    <line id="right-margin-Regular-M" style="fill:none;stroke:#27AAE1;opacity:1;stroke-width:0.5;" x1="1484.74" y1="1030.79" x2="1484.74" y2="1150.12"/>
+    <line id="right-margin-Regular-M" style="fill:none;stroke:#27AAE1;opacity:1;stroke-width:0.5;" x1="1498.82" y1="1030.79" x2="1498.82" y2="1150.12"/>
   </g>
   <g id="Symbols">
     <g id="Regular-M">
-      <path d="M 1472.257 1108.268 C 1470.231 1104.779 1467.22 1094.906 1467.22 1082.01 a 29.2 29.2 0 1 0 -58.4 0 c 0 12.899 -3.015 22.769 -5.041 26.258 A 5.84 5.84 0 0 0 1408.82 1117.05 H 1423.716 a 14.6 14.6 0 0 0 28.609 0 H 1467.22 a 5.84 5.84 0 0 0 5.037 -8.782 Z M 1438.02 1122.89 a 8.76 8.76 0 0 1 -8.256 -5.84 h 16.513 A 8.76 8.76 0 0 1 1438.02 1122.89 Z"/>
+      <path d="M 1484.456 1110.905 C 1482.125 1106.89 1478.66 1095.529 1478.66 1080.69 a 33.6 33.6 0 1 0 -67.2 0 c 0 14.843 -3.469 26.2 -5.8 30.215 A 6.72 6.72 0 0 0 1411.46 1121.01 H 1428.6 a 16.8 16.8 0 0 0 32.92 0 H 1478.66 a 6.72 6.72 0 0 0 5.796 -10.105 Z M 1445.06 1127.73 a 10.08 10.08 0 0 1 -9.5 -6.72 h 19.001 A 10.08 10.08 0 0 1 1445.06 1127.73 Z"/>
     </g>
   </g>
 </svg>
