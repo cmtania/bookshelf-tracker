@@ -109,6 +109,8 @@ Inside the app, the logo appears in onboarding, on the paywall and in the credit
 
 The app's icons are [Phosphor Icons](https://phosphoricons.com) (MIT licence), Regular weight, plus Fill for the tab bar and filled states. They are stored as custom SF Symbols in `Shelfie/Resources/Assets.xcassets/Phosphor/`, so they scale with the text, take the text colour and line up like system symbols. Use them as `Image("ph-books")` or `Label("Title", image: "ph-books")`.
 
+**Exception: toolbars.** Custom symbols don't render in navigation-bar toolbar buttons, so those use system controls: `Button(role: .close)` for close buttons and `Button("Add category", systemImage: "plus")` for the Categories **+**.
+
 To add more, use the Phosphor file name (add `-fill` for the filled version) and run:
 
 ```sh
