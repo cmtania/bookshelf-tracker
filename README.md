@@ -101,4 +101,16 @@ The final logo is cream shelves and books on an orange (`#FFA500`) tile. The fil
 | `shelfie-logo.svg` | Clean copy with a transparent background: website, App Store page, social media, and the `Logo` image in the app |
 | `shelfie-appicon.svg` / `app-icon-1024.png` | The app icon: the same artwork filling a square (iOS adds the rounded corners) |
 
-Inside the app, the logo appears in onboarding, on the paywall and in the credit on the share image, as `Image("Logo")`. The tab bar uses SF Symbols, because tab icons must be single-colour template symbols.
+Inside the app, the logo appears in onboarding, on the paywall and in the credit on the share image, as `Image("Logo")`.
+
+### Icons
+
+The app's icons are [Phosphor Icons](https://phosphoricons.com) (MIT licence), Regular weight, plus Fill for the tab bar and filled states. They are stored as custom SF Symbols in `Shelfie/Resources/Assets.xcassets/Phosphor/`, so they scale with the text, take the text colour and line up like system symbols. Use them as `Image("ph-books")` or `Label("Title", image: "ph-books")`.
+
+To add more, use the Phosphor file name (add `-fill` for the filled version) and run:
+
+```sh
+node design/icons/make-symbols.mjs bookmark-simple heart-fill
+```
+
+It downloads the icons (Phosphor 2.1.1) and writes one `ph-<name>.symbolset` for each. It needs Node 18+ and internet, and adds nothing to the app except those files.
