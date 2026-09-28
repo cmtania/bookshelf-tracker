@@ -1,4 +1,4 @@
-# Renders the App Store promo screenshots (1320 x 2868, 6.9" iPhone) into appstore/final/.
+# Renders the App Store promo screenshots into appstore/final/: 6.9" iPhone (1320 x 2868) and, when iPad captures are in raw/, 13" iPad (2064 x 2752).
 # Uses headless Microsoft Edge and template.html. Edit the list below and run:
 #   powershell -ExecutionPolicy Bypass -File appstore\render.ps1
 # (Also needs the bookshelf-tracker-docs repo next to this one, for the font.)
@@ -28,16 +28,37 @@ $slides = @(
      title = 'Free to start. Pay once for Pro.';          sub = 'Unlimited books and every shelf, yours forever.' }
 )
 
-$template = (Join-Path $here 'template.html') -replace '\\', '/'
 # Edge writes harmless warnings to stderr; don't let them stop the script.
 $ErrorActionPreference = 'Continue'
-foreach ($s in $slides) {
-  $query = 'shot=' + [uri]::EscapeDataString($s.shot) + '&title=' + [uri]::EscapeDataString($s.title) +
-           '&sub=' + [uri]::EscapeDataString($s.sub) + '&theme=' + $s.theme
+
+function Render($templateName, $size, $shot, $slide, $png) {
+  $template = (Join-Path $here $templateName) -replace '\\', '/'
+  $query = 'shot=' + [uri]::EscapeDataString($shot) + '&title=' + [uri]::EscapeDataString($slide.title) +
+           '&sub=' + [uri]::EscapeDataString($slide.sub) + '&theme=' + $slide.theme
   $url = "file:///$template`?$query"
-  $png = Join-Path $final "$($s.out).png"
   & $edge --headless=new --disable-gpu --hide-scrollbars --force-device-scale-factor=1 --allow-file-access-from-files `
-    --window-size=1320,2868 --virtual-time-budget=4000 --screenshot="$png" $url 2>$null | Out-Null
+    --window-size=$size --virtual-time-budget=4000 --screenshot="$png" $url 2>$null | Out-Null
   Start-Sleep -Milliseconds 800
-  Write-Host "rendered $($s.out).png"
+  Write-Host "rendered $(Split-Path -Leaf $png)"
+}
+
+# 6.9" iPhone, 1320 x 2868.
+foreach ($s in $slides) {
+  Render 'template.html' '1320,2868' $s.shot $s (Join-Path $final "$($s.out).png")
+}
+
+# 13" iPad, 2064 x 2752 (required because the app supports iPad). Take the same screens, in the
+# same order as $slides, in the 13-inch iPad Pro simulator (portrait, Cmd+S) and put them in raw/.
+# Their file names contain "iPad", and they're paired with the captions above by time taken.
+$ipadShots = @(Get-ChildItem (Join-Path $here 'raw') -Filter '*iPad*.png' | Sort-Object Name)
+if ($ipadShots.Count -eq 0) {
+  Write-Host 'No iPad captures in raw/ yet, so no iPad screenshots were made.'
+} else {
+  if ($ipadShots.Count -ne $slides.Count) {
+    Write-Host "Note: $($ipadShots.Count) iPad captures for $($slides.Count) captions; pairing the first $([Math]::Min($ipadShots.Count, $slides.Count))."
+  }
+  for ($i = 0; $i -lt [Math]::Min($ipadShots.Count, $slides.Count); $i++) {
+    $s = $slides[$i]
+    Render 'template-ipad.html' '2064,2752' $ipadShots[$i].Name $s (Join-Path $final "ipad-$($s.out).png")
+  }
 }
