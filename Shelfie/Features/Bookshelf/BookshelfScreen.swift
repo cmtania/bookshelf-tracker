@@ -3,7 +3,8 @@ import SwiftData
 import SwiftUI
 
 /// Home: the 3D room with the bookcase. Tap a compartment to look closer; tap a spine and the book
-/// slides out, flies up and turns to show its front cover, with Log reading and Edit underneath.
+/// slides out (with a soft sound), flies up and turns to show its front cover, with Log reading
+/// and Edit underneath. Pinch to zoom in or out, and drag to look around while zoomed in.
 /// The glass chip row at the bottom mirrors the 3D view with full-size tap targets (and VoiceOver).
 struct BookshelfScreen: View {
     @Environment(\.modelContext) private var context
@@ -29,6 +30,7 @@ struct BookshelfScreen: View {
     @State private var editingTheme = false
     @State private var sharing = false
     @State private var renamingCategory: BookCategory?
+    @State private var isPinching = false
 
     @AppStorage(Prefs.shelfColorKey) private var shelfID = RoomTheme.default.shelfID
     @AppStorage(Prefs.wallColorKey) private var wallID = RoomTheme.default.wallID
@@ -74,6 +76,32 @@ struct BookshelfScreen: View {
                         .targetedToAnyEntity()
                         .onEnded { value in handleTap(value.entity) }
                 )
+                // Two fingers zoom in and out; one finger moves around while zoomed in.
+                .simultaneousGesture(
+                    MagnifyGesture()
+                        .onChanged { value in
+                            guard !editingTheme else { return }
+                            isPinching = true
+                            scene.pinchChanged(scale: value.magnification, anchor: value.startAnchor)
+                        }
+                        .onEnded { _ in
+                            isPinching = false
+                            scene.pinchEnded()
+                        }
+                )
+                .simultaneousGesture(
+                    DragGesture(minimumDistance: 10)
+                        .onChanged { value in
+                            guard !editingTheme else { return }
+                            // A pinch also moves the fingers; let it own the camera until it ends.
+                            if isPinching {
+                                scene.panEnded()
+                            } else {
+                                scene.panChanged(translation: value.translation, viewSize: geo.size)
+                            }
+                        }
+                        .onEnded { _ in scene.panEnded() }
+                )
                 .onChange(of: geo.size) { _, size in
                     scene.setViewSize(size)
                 }
@@ -116,6 +144,9 @@ struct BookshelfScreen: View {
         }
         .onChange(of: reduceMotion, initial: true) { _, value in
             scene.reduceMotion = value
+        }
+        .task {
+            SoundEffects.preload(.bookPull)
         }
         .sheet(item: $readingBook) { book in
             BookDetailView(book: book)
@@ -462,6 +493,7 @@ struct BookshelfScreen: View {
 
     private func open(bookID: UUID) {
         guard books.contains(where: { $0.id == bookID }) else { return }
+        SoundEffects.play(.bookPull)
         showsPresentedControls = false
         withAnimation(.snappy) { presentedID = bookID }
         Task {
