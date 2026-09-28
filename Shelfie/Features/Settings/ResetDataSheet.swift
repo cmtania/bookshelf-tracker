@@ -36,7 +36,7 @@ struct ResetDataSheet: View {
                     }
 
                     VStack(alignment: .leading, spacing: 10) {
-                        Text("This deletes, from this iPhone:")
+                        Text("This deletes, from this device:")
                             .font(.subheadline.weight(.semibold))
                         deletedRow("ph-books", "Every book on your shelf")
                         deletedRow("ph-squares-four", "All your categories")
