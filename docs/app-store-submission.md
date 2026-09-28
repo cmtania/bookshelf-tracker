@@ -28,7 +28,7 @@ Everything App Store Connect asks for, ready to paste, for version **1.0.0**. Fi
 |---|---|
 | **Price** | Free (Shelfie Pro is sold as in-app purchases) |
 | **Availability** | All countries or regions |
-| **Devices** | iPhone only. iPad runs it in iPhone compatibility mode, so check the layout there before submitting (BuzzBee was rejected for this). |
+| **Devices** | iPhone and iPad (native iPad layout). Review may test on an iPad, so check it there before submitting (BuzzBee was rejected for its iPad layout). |
 
 ---
 
@@ -149,6 +149,8 @@ The website must be **live** before you submit, because App Review opens these l
 
 **Required:** the **6.9" iPhone** size, **1320 × 2868** pixels, portrait. Apple scales it down for smaller iPhones. You can upload 3 to 10 screenshots. Take them in the **iPhone 17 Pro Max** simulator with **Cmd+S**; they save to the Desktop at the right size.
 
+**Also required, because the app supports iPad:** the **13" iPad** size, **2064 × 2752** pixels portrait (or 2752 × 2064 landscape), 3 to 10 screenshots. Take them in the **13-inch iPad Pro** simulator with **Cmd+S**. Apple scales them down for smaller iPads. A good set: the shelf in landscape, room colors with the side panel open, a book up close, and the calendar.
+
 Use made-up book titles in the screenshots, not real bestsellers, just as the website does.
 
 Suggested set and captions:
@@ -225,7 +227,7 @@ On the version page, select the build under **Build** once it has finished proce
 **Store listing**
 - [ ] Name, subtitle, description, keywords, promotional text filled in
 - [ ] Support, Marketing and Privacy Policy URLs open in a browser (the website is live)
-- [ ] 6.9" screenshots uploaded (3–10), with made-up book titles only
+- [ ] 6.9" iPhone and 13" iPad screenshots uploaded (3–10 each), with made-up book titles only
 - [ ] Age rating done (4+), categories set (Books / Productivity)
 - [ ] App Privacy: Data Not Collected
 
@@ -240,7 +242,7 @@ On the version page, select the build under **Build** once it has finished proce
 
 **App**
 - [ ] The paywall shows the subscription terms and the Terms of Use and Privacy links (it does, in `PaywallView`)
-- [ ] Tested on a small iPhone (SE-size simulator) and on an iPad in iPhone mode: nothing overlaps or is cut off
+- [ ] Tested on a small iPhone (SE-size simulator) and on an iPad in portrait, landscape and Split View: nothing overlaps or is cut off, and room colors open in the side panel
 - [ ] A reminder set 1 minute ahead arrives on a real iPhone
 - [ ] Onboarding shows on a fresh install, and **Skip** works
 - [ ] **Reset all data** works and brings back onboarding
