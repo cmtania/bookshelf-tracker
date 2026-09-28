@@ -2,7 +2,8 @@ import RealityKit
 import SwiftUI
 
 /// Owns the RealityKit scene: room, bookcase, books and the camera.
-/// Two camera poses: overview of the whole bookcase, and close-up on one compartment.
+/// Two camera poses: overview of the whole bookcase, and close-up on one compartment. On either,
+/// a pinch zooms in (toward the fingers) and a drag pans while zoomed.
 /// A tapped book is "presented": it slides out, then flies up in front of the camera showing its cover.
 @MainActor
 final class RoomScene {
@@ -28,6 +29,15 @@ final class RoomScene {
     private var bookSnapshots: [UUID: BookSnapshot] = [:]
     /// Where the camera is (or is heading); presentation poses are placed relative to it.
     private var cameraTarget = Transform()
+    private var cameraAnimation: AnimationPlaybackController?
+
+    /// Pinch zoom on top of the framed pose: 1 is the framed view, higher is closer.
+    private(set) var zoom: Float = 1
+    /// Sideways / up-down shift of the camera while zoomed in (metres, in the camera's own axes).
+    private var pan: SIMD2<Float> = .zero
+    private var pinchStart: (zoom: Float, pan: SIMD2<Float>)?
+    private var panStart: (pan: SIMD2<Float>, translation: CGSize)?
+    static let zoomRange: ClosedRange<Float> = 0.8...3
 
     /// The book currently lifted out of the shelf and shown up close.
     private struct Presented {
@@ -107,6 +117,7 @@ final class RoomScene {
         if styleChanged {
             dismissPresentedImmediately()
             if let lastSnapshot { update(lastSnapshot) }
+            resetZoom()
             applyCamera(animated: !reduceMotion)
         }
     }
@@ -144,6 +155,7 @@ final class RoomScene {
 
     func focus(compartment: Int?) {
         focusedCompartment = compartment
+        resetZoom()
         applyCamera(animated: !reduceMotion)
     }
 
@@ -154,56 +166,136 @@ final class RoomScene {
     func setRoomPreview(_ previewing: Bool) {
         guard previewing != isPreviewingRoom else { return }
         isPreviewingRoom = previewing
+        resetZoom()
         applyCamera(animated: !reduceMotion)
     }
 
     private func applyCamera(animated: Bool) {
         let target = cameraTransform()
         cameraTarget = target
+        cameraAnimation?.stop()
         if animated {
-            camera.move(to: target, relativeTo: nil, duration: 0.6, timingFunction: .easeInOut)
+            cameraAnimation = camera.move(to: target, relativeTo: nil, duration: 0.6, timingFunction: .easeInOut)
         } else {
+            cameraAnimation = nil
             camera.transform = target
         }
     }
 
+    /// What the camera frames: the whole bookcase or one compartment, as a centre point, the
+    /// half-size that must fit on screen, the camera's turn, and its distance along its view axis.
+    private struct Framing {
+        var center: SIMD3<Float>
+        var halfSize: SIMD2<Float>
+        var rotation: simd_quatf
+        var distance: Float
+    }
+
+    private var tangents: SIMD2<Float> {
+        let verticalTan = tan(camera.camera.fieldOfViewInDegrees * .pi / 180 / 2)
+        return SIMD2(verticalTan * viewAspect, verticalTan)
+    }
+
+    /// Share of the screen height left after the top bar, chips and the tab bar.
+    private static let usableHeight: Float = 0.72
+
     /// Pulls the camera back until the target fits both across and between the top bar and tab bar.
-    private func cameraTransform() -> Transform {
-        let fov = camera.camera.fieldOfViewInDegrees * .pi / 180
-        let verticalTan = tan(fov / 2)
-        let horizontalTan = verticalTan * viewAspect
-        // Share of the screen height left after the top bar, chips and the tab bar.
-        let usableHeight: Float = 0.72
-
-        if isPreviewingRoom {
-            return roomPreviewTransform(verticalTan: verticalTan, horizontalTan: horizontalTan)
-        }
-
+    private func framing() -> Framing {
+        let tangents = self.tangents
         let center: SIMD3<Float>
-        let halfWidth: Float
-        let halfHeight: Float
+        let halfSize: SIMD2<Float>
         if let index = focusedCompartment, index < layout.slots.count {
             let slot = layout.slots[index]
             center = slot.frontCenter
-            halfWidth = slot.width / 2 + 0.06
-            halfHeight = slot.height / 2 + 0.08
+            halfSize = SIMD2(slot.width / 2 + 0.06, slot.height / 2 + 0.08)
         } else {
             center = layout.center
-            halfWidth = layout.width / 2 + 0.12
-            halfHeight = layout.height / 2 + 0.1
+            halfSize = SIMD2(layout.width / 2 + 0.12, layout.height / 2 + 0.1)
         }
-        let distance = max(halfWidth / horizontalTan, halfHeight / (verticalTan * usableHeight))
+        let distance = max(halfSize.x / tangents.x, halfSize.y / (tangents.y * Self.usableHeight))
+        guard focusedCompartment == nil else {
+            return Framing(center: center, halfSize: halfSize, rotation: simd_quatf(angle: 0, axis: [0, 1, 0]), distance: distance)
+        }
+        // A slight angle on the overview, so the case reads as 3D rather than a flat picture:
+        // the camera sits 12% of the distance to the right, turned to face the centre.
+        let angle = atan(Float(0.12))
+        return Framing(center: center, halfSize: halfSize, rotation: simd_quatf(angle: angle, axis: [0, 1, 0]), distance: distance / cos(angle))
+    }
 
-        var transform = Transform()
-        if focusedCompartment == nil {
-            // A slight angle on the overview, so the case reads as 3D rather than a flat picture.
-            let sideOffset = distance * 0.12
-            transform.translation = [center.x + sideOffset, center.y, center.z + distance]
-            transform.rotation = simd_quatf(angle: atan2(sideOffset, distance), axis: [0, 1, 0])
-        } else {
-            transform.translation = [center.x, center.y, center.z + distance]
+    private func cameraTransform() -> Transform {
+        if isPreviewingRoom {
+            return roomPreviewTransform(verticalTan: tangents.y, horizontalTan: tangents.x)
         }
+        let frame = framing()
+        // Zooming moves the camera along its view axis; panning shifts it in its own plane.
+        let offset = SIMD3(pan.x, pan.y, frame.distance / zoom)
+        var transform = Transform()
+        transform.rotation = frame.rotation
+        transform.translation = frame.center + frame.rotation.act(offset)
         return transform
+    }
+
+    // MARK: Pinch zoom and pan
+
+    /// Zooms toward the point between the fingers, so what's under them stays under them.
+    /// `scale` is the pinch's total scale since it started; `anchor` is where it started (0...1 of the view).
+    func pinchChanged(scale: CGFloat, anchor: UnitPoint) {
+        guard !isPreviewingRoom, presented == nil else { return }
+        let start = pinchStart ?? (zoom, pan)
+        pinchStart = start
+        let frame = framing()
+        // Zooming out stops before the camera would back out of the room (it's open behind the camera).
+        let maxDistance = RoomFactory.roomDepth - 0.4 - frame.center.z
+        let lowest = min(max(Self.zoomRange.lowerBound, frame.distance / maxDistance), 1)
+        let newZoom = min(max(start.zoom * Float(scale), lowest), Self.zoomRange.upperBound)
+        // The anchor as -1...1 across the view (y up). At distance d it sits at pan + n * tangents * d,
+        // so keeping it fixed while d changes means moving the camera by n * tangents * (d0 - d1).
+        let n = SIMD2(Float(anchor.x) * 2 - 1, 1 - Float(anchor.y) * 2)
+        let startDistance = frame.distance / start.zoom
+        let newDistance = frame.distance / newZoom
+        zoom = newZoom
+        pan = clampedPan(start.pan + n * tangents * (startDistance - newDistance), frame: frame)
+        applyCamera(animated: false)
+    }
+
+    /// Drags the view around while zoomed in. `translation` is the finger's movement in points.
+    func panChanged(translation: CGSize, viewSize: CGSize) {
+        guard !isPreviewingRoom, presented == nil, zoom > 1.01, viewSize.width > 0, viewSize.height > 0 else { return }
+        // Remember where the finger was when panning (re)started, e.g. after a pinch in the same drag.
+        let start = panStart ?? (pan, translation)
+        panStart = start
+        let frame = framing()
+        // One screen width at the current distance is 2 * tangent * distance metres.
+        let metres = 2 * tangents * (frame.distance / zoom)
+        let dx = Float((translation.width - start.translation.width) / viewSize.width)
+        let dy = Float((translation.height - start.translation.height) / viewSize.height)
+        // The content follows the finger, so the camera moves the other way.
+        pan = clampedPan(start.pan - SIMD2(dx * metres.x, -dy * metres.y), frame: frame)
+        applyCamera(animated: false)
+    }
+
+    func pinchEnded() {
+        pinchStart = nil
+    }
+
+    func panEnded() {
+        panStart = nil
+    }
+
+    /// Keeps the view on the bookcase (or compartment): the camera can only shift as far as the
+    /// part that doesn't fit on screen at this zoom. Fully zoomed out, that's nothing.
+    private func clampedPan(_ value: SIMD2<Float>, frame: Framing) -> SIMD2<Float> {
+        var visible = tangents * (frame.distance / zoom)
+        visible.y *= Self.usableHeight
+        let limit = simd_max(frame.halfSize - visible, .zero)
+        return simd_clamp(value, -limit, limit)
+    }
+
+    private func resetZoom() {
+        zoom = 1
+        pan = .zero
+        pinchStart = nil
+        panStart = nil
     }
 
     /// Frames the bookcase plus a good margin of wall and floor in the **top half** of the screen.
