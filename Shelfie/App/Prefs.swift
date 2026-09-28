@@ -16,6 +16,8 @@ enum Prefs {
     static let floorColorKey = "theme.floor"
     static let bookcaseStyleKey = "theme.style"
     static let soundEffectsEnabledKey = "soundEffectsEnabled"
+    /// "system", "light" or "dark" (AppAppearance).
+    static let appearanceKey = "appearance"
 
     static let defaultReminderMinutes = 19 * 60
     /// The "streak at risk" alert always goes out at 8 PM.
