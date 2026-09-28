@@ -159,13 +159,21 @@ final class RoomScene {
         applyCamera(animated: !reduceMotion)
     }
 
-    /// While the room colors sheet covers the bottom half of the screen, the camera pulls back
-    /// and tilts down to show the whole room (bookcase, walls and floor) in the top half.
-    private(set) var isPreviewingRoom = false
+    /// While room colors are being edited, the camera pulls back to show the whole room
+    /// (bookcase, walls and floor) wherever the editor leaves it visible.
+    enum RoomPreview {
+        /// iPhone: the colors sheet covers the bottom half, so the room is framed in the top half.
+        case topHalf
+        /// iPad: the colors panel sits beside the room, so the room fills the whole view.
+        case wholeView
+    }
 
-    func setRoomPreview(_ previewing: Bool) {
-        guard previewing != isPreviewingRoom else { return }
-        isPreviewingRoom = previewing
+    private(set) var roomPreview: RoomPreview?
+    private var isPreviewingRoom: Bool { roomPreview != nil }
+
+    func setRoomPreview(_ preview: RoomPreview?) {
+        guard preview != roomPreview else { return }
+        roomPreview = preview
         resetZoom()
         applyCamera(animated: !reduceMotion)
     }
@@ -223,8 +231,8 @@ final class RoomScene {
     }
 
     private func cameraTransform() -> Transform {
-        if isPreviewingRoom {
-            return roomPreviewTransform(verticalTan: tangents.y, horizontalTan: tangents.x)
+        if let roomPreview {
+            return roomPreviewTransform(roomPreview, verticalTan: tangents.y, horizontalTan: tangents.x)
         }
         let frame = framing()
         // Zooming moves the camera along its view axis; panning shifts it in its own plane.
@@ -298,22 +306,31 @@ final class RoomScene {
         panStart = nil
     }
 
-    /// Frames the bookcase plus a good margin of wall and floor in the **top half** of the screen.
-    /// The top half spans tangents 0...verticalTan above the optical axis, so the camera tilts down by
-    /// atan(verticalTan / 2): that puts the room's centre in the middle of the top half.
-    private func roomPreviewTransform(verticalTan: Float, horizontalTan: Float) -> Transform {
+    /// Frames the bookcase plus a good margin of wall and floor.
+    /// - Top half: that half spans tangents 0...verticalTan above the optical axis, so the camera tilts
+    ///   down by atan(verticalTan / 2), which puts the room's centre in the middle of the top half.
+    /// - Whole view: the room is centred, seen from a little above so some floor shows.
+    private func roomPreviewTransform(_ preview: RoomPreview, verticalTan: Float, horizontalTan: Float) -> Transform {
         let center = layout.center
         // Half-sizes of what should be visible: the bookcase with wall on both sides, and floor in front.
         let halfWidth = layout.width / 2 + 0.7
         let halfHeight = layout.height / 2 + 0.45
-        let distance = max(halfWidth / horizontalTan, halfHeight / (verticalTan / 2))
         // Stay inside the room (it's 7 m deep), so the camera never sees past the walls' edges.
         let maxDistance = RoomFactory.roomDepth - 0.4 - layout.frontZ
-        let tilt = atan(verticalTan / 2)
 
         var transform = Transform()
-        transform.translation = [center.x, center.y, center.z + min(distance, maxDistance)]
-        transform.rotation = simd_quatf(angle: -tilt, axis: [1, 0, 0])
+        switch preview {
+        case .topHalf:
+            let distance = max(halfWidth / horizontalTan, halfHeight / (verticalTan / 2))
+            let tilt = atan(verticalTan / 2)
+            transform.translation = [center.x, center.y, center.z + min(distance, maxDistance)]
+            transform.rotation = simd_quatf(angle: -tilt, axis: [1, 0, 0])
+        case .wholeView:
+            let distance = min(max(halfWidth / horizontalTan, halfHeight / (verticalTan * 0.9)), maxDistance)
+            let tilt: Float = 0.12
+            transform.rotation = simd_quatf(angle: -tilt, axis: [1, 0, 0])
+            transform.translation = center + transform.rotation.act(SIMD3(0, 0, distance))
+        }
         return transform
     }
 
