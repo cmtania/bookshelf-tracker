@@ -32,6 +32,9 @@ struct BookshelfScreen: View {
     @State private var sharing = false
     @State private var renamingCategory: BookCategory?
     @State private var isPinching = false
+    /// Where the 3D view and the iPad Room colors panel are on screen, to keep the room clear of the panel.
+    @State private var roomFrame: CGRect = .zero
+    @State private var panelMinX: CGFloat?
 
     @AppStorage(Prefs.shelfColorKey) private var shelfID = RoomTheme.default.shelfID
     @AppStorage(Prefs.wallColorKey) private var wallID = RoomTheme.default.wallID
@@ -66,7 +69,15 @@ struct BookshelfScreen: View {
 
     private var roomPreview: RoomScene.RoomPreview? {
         guard editingTheme else { return nil }
-        return usesSidePanel ? .wholeView : .topHalf
+        return usesSidePanel ? .wholeView(coveredTrailing: panelCoverage) : .topHalf
+    }
+
+    /// Share of the 3D view's width the Room colors panel covers on the right. The panel may sit on
+    /// top of the room (so the room must be centred to its left) or push the room aside (then 0);
+    /// measuring both frames works either way.
+    private var panelCoverage: Float {
+        guard usesSidePanel, editingTheme, let panelMinX, roomFrame.width > 0 else { return 0 }
+        return Float(max(0, roomFrame.maxX - panelMinX) / roomFrame.width)
     }
 
     private var themeEditor: some View {
@@ -129,6 +140,7 @@ struct BookshelfScreen: View {
                 .onChange(of: geo.size) { _, size in
                     scene.setViewSize(size)
                 }
+                .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { roomFrame = $0 }
             }
             .ignoresSafeArea()
             .accessibilityHidden(true)
@@ -155,6 +167,10 @@ struct BookshelfScreen: View {
             scene.setRoomPreview(roomPreview)
         }
         .onChange(of: usesSidePanel) { _, _ in
+            scene.setRoomPreview(roomPreview)
+        }
+        .onChange(of: panelCoverage) { _, _ in
+            // The panel slid in (or the window was resized): re-centre the room beside it.
             scene.setRoomPreview(roomPreview)
         }
         .onChange(of: theme, initial: true) { _, newTheme in
@@ -215,6 +231,7 @@ struct BookshelfScreen: View {
         )) {
             themeEditor
                 .inspectorColumnWidth(min: 320, ideal: 360, max: 420)
+                .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).minX } action: { panelMinX = $0 }
         }
         .sheet(isPresented: $sharing) {
             ShareShelfSheet(card: shareCard(shelf))
