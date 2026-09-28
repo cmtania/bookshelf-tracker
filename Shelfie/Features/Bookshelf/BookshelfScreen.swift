@@ -222,16 +222,13 @@ struct BookshelfScreen: View {
         .sheet(item: $renamingCategory) { category in
             CategoryEditSheet(category: category)
         }
-        .confirmationDialog(
-            "Delete “\(bookToDelete?.title ?? "this book")”?",
-            isPresented: Binding(get: { bookToDelete != nil }, set: { if !$0 { bookToDelete = nil } }),
-            titleVisibility: .visible,
-            presenting: bookToDelete
+        .confirmation(
+            item: $bookToDelete,
+            title: { "Delete “\($0.title)”?" },
+            message: BookDeletion.confirmationMessage,
+            confirmTitle: "Delete book"
         ) { book in
-            Button("Delete book", role: .destructive) { delete(book) }
-            Button("Cancel", role: .cancel) {}
-        } message: { _ in
-            Text(BookDeletion.confirmationMessage)
+            delete(book)
         }
     }
 
