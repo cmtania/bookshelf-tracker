@@ -64,7 +64,7 @@ struct CategoryDetailView: View {
                 Button {
                     requestAddBook()
                 } label: {
-                    Label("Add a book here", systemImage: "plus")
+                    Label("Add a book here", image: "ph-plus")
                 }
             } header: {
                 Text("All books")
@@ -141,7 +141,7 @@ struct CategoryDetailView: View {
             Spacer()
             if stats.streak > 0 {
                 VStack(spacing: 0) {
-                    Image(systemName: "flame.fill")
+                    Image("ph-flame-fill")
                         .font(.title3)
                         .foregroundStyle(.orange)
                     Text("\(stats.streak)")
@@ -204,7 +204,7 @@ struct CategoryDetailView: View {
         Button(role: .destructive) {
             bookToDelete = book
         } label: {
-            Label("Delete", systemImage: "trash")
+            Label("Delete", image: "ph-trash")
         }
     }
 
@@ -213,12 +213,12 @@ struct CategoryDetailView: View {
         Button {
             readingBook = book
         } label: {
-            Label("Open", systemImage: "book")
+            Label("Open", image: "ph-book-open")
         }
         Button(role: .destructive) {
             bookToDelete = book
         } label: {
-            Label("Delete book", systemImage: "trash")
+            Label("Delete book", image: "ph-trash")
         }
     }
 
@@ -232,7 +232,7 @@ struct CategoryDetailView: View {
                 Spacer()
                 let streak = StreakCalculator().currentStreak(book.sessionDates)
                 if streak > 0 {
-                    Label("\(streak)", systemImage: "flame.fill")
+                    Label("\(streak)", image: "ph-flame-fill")
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(.orange)
                 }
@@ -262,7 +262,7 @@ struct CategoryDetailView: View {
                     .lineLimit(1)
             }
             Spacer()
-            Label(book.status.label, systemImage: book.status.symbol)
+            Label(book.status.label, image: book.status.symbol)
                 .font(.caption2.weight(.medium))
                 .foregroundStyle(.secondary)
                 .labelStyle(.titleAndIcon)
