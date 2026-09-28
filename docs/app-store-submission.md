@@ -154,7 +154,9 @@ The website must be **live** before you submit, because App Review opens these l
 
 **Required:** the **6.9" iPhone** size, **1320 × 2868** pixels, portrait. Apple scales it down for smaller iPhones. You can upload 3 to 10 screenshots. Take them in the **iPhone 17 Pro Max** simulator with **Cmd+S**; they save to the Desktop at the right size.
 
-**Also required, because the app supports iPad:** the **13" iPad** size, **2064 × 2752** pixels portrait (or 2752 × 2064 landscape), 3 to 10 screenshots. Take them in the **13-inch iPad Pro** simulator with **Cmd+S**. Apple scales them down for smaller iPads. A good set: the shelf in landscape, room colors with the side panel open, a book up close, and the calendar.
+**Also required, because the app supports iPad:** the **13" iPad** size, **2064 × 2752** pixels portrait (or 2752 × 2064 landscape), 3 to 10 screenshots. Take them in the **13-inch iPad Pro** simulator with **Cmd+S**. Apple scales them down for smaller iPads. They must be real iPad captures: stretched iPhone screenshots in the iPad slots get rejected.
+
+To make the framed iPad promo images: take the same six screens as the iPhone set, **in the same order** (a book pulled out, room colors, the share sheet, the bookshelf, welcome, the Pro screen), in **portrait**. Put them in `appstore/raw/` and run `appstore/render.ps1`. It pairs files with "iPad" in the name with the iPhone captions and writes `appstore/final/ipad-01-….png` to `ipad-06-….png` at 2064 × 2752.
 
 Use made-up book titles in the screenshots, not real bestsellers, just as the website does.
 
