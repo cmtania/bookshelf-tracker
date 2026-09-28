@@ -68,11 +68,12 @@ Your books, on a real 3D bookshelf. Log pages in seconds, keep a streak for ever
 ```
 Shelfie is a reading tracker where your books live on a real 3D bookshelf.
 
-Every category is a compartment of your bookcase. Thick books look thick, the one you're reading sticks out with a bookmark ribbon, and your to-read pile lies flat, just like at home. Tap a shelf to look closer, then tap a spine and the book slides out and turns to show its cover.
+Every category is a compartment of your bookcase. Thick books look thick, the one you're reading sticks out with a bookmark ribbon, and your to-read pile lies flat, just like at home. Tap a shelf to look closer, pinch to zoom anywhere, then tap a spine and the book slides out with a soft sound and turns to show its cover.
 
 LOG READING IN SECONDS
 • Type the page you're on, or how many pages you read
 • Add minutes if you like, or log a session for earlier
+• Every session is celebrated, with extra cheer for streak milestones and finished books
 • Mark a book finished when you reach the last page
 
 A STREAK FOR EVERY BOOK
@@ -91,6 +92,10 @@ CATEGORIES WITH THE NUMBERS THAT MATTER
 
 SHARE YOUR SHELF
 • Turn your bookcase into a clean picture for Instagram, Messages or anywhere else
+
+MADE FOR IPHONE AND IPAD
+• A native iPad layout in any orientation, Split View included
+• Light, Dark or System appearance
 
 PRIVATE BY DESIGN
 • No account and no sign-in
@@ -190,8 +195,9 @@ No account or sign-in is needed. All data is stored on the device only.
 
 HOW TO USE
 1. On first launch, a short welcome can be skipped with "Skip".
-2. Bookshelf tab: tap a compartment to zoom in, tap + to add a book, then tap the book's spine (or its name in the row at the bottom) to pull it out. "Log reading" records pages read and builds the reading streak.
+2. Bookshelf tab: tap a compartment to zoom in (or pinch to zoom), tap + to add a book, then tap the book's spine (or its name in the row at the bottom) to pull it out. "Log reading" records pages read and builds the reading streak.
 3. Categories and Calendar tabs show per-category statistics and reading history.
+4. Settings has Appearance (System, Light, Dark) and Sound effects. "Reset all data" asks you to type CONFIRM before it erases anything.
 
 IN-APP PURCHASES (Shelfie Pro)
 - Pro Lifetime (com.cmtania.shelfie.unlock): non-consumable, one-time purchase.
