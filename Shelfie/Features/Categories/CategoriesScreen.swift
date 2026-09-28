@@ -55,12 +55,10 @@ struct CategoriesScreen: View {
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     if categories.count < UnlockGate.maxCategories {
-                        Button {
+                        // A system symbol: Phosphor custom symbols don't render in toolbars.
+                        Button("Add category", systemImage: "plus") {
                             requestAddCategory()
-                        } label: {
-                            Image("ph-plus")
                         }
-                        .accessibilityLabel("Add category")
                     }
                 }
             }
