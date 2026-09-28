@@ -29,6 +29,7 @@ struct CalendarScreen: View {
             }
             .background(Color(.systemGroupedBackground))
             .navigationTitle("Calendar")
+            .sensoryFeedback(.selection, trigger: selectedDay)
         }
     }
 
@@ -231,8 +232,7 @@ struct CalendarScreen: View {
             Text(selectedDay.formatted(.dateTime.weekday(.wide).month(.wide).day()))
                 .font(.headline)
             if daySessions.isEmpty {
-                Text("No reading logged.")
-                    .foregroundStyle(.secondary)
+                emptyDay
             }
             ForEach(daySessions) { session in
                 HStack(spacing: 12) {
@@ -249,7 +249,7 @@ struct CalendarScreen: View {
                     Spacer()
                     VStack(alignment: .trailing, spacing: 2) {
                         Text("+\(session.pagesRead)")
-                            .font(.subheadline.weight(.semibold))
+                            .font(.subheadline.weight(.semibold).monospacedDigit())
                         if let minutes = session.minutes {
                             Text("\(minutes) min")
                                 .font(.caption)
@@ -263,6 +263,30 @@ struct CalendarScreen: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    /// Guidance instead of a bare "nothing here": today says how to log, past days stay light.
+    private var emptyDay: some View {
+        let isToday = calendar.isDateInToday(selectedDay)
+        return HStack(spacing: 12) {
+            Image(isToday ? "ph-book-open" : "ph-calendar-dots")
+                .font(.title3)
+                .foregroundStyle(isToday ? Color.accentColor : Color.secondary)
+                .frame(width: 32)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(isToday ? "Nothing logged yet today" : "No reading this day")
+                    .font(.subheadline.weight(.semibold))
+                Text(isToday
+                    ? "Open a book on your shelf and tap Log reading. Even a few pages keep your streak going."
+                    : "Days you read show a dot for each book.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(RoundedRectangle(cornerRadius: 16).fill(Color(.secondarySystemGroupedBackground)))
+        .accessibilityElement(children: .combine)
     }
 
     // MARK: Helpers
