@@ -188,7 +188,7 @@ struct BookshelfScreen: View {
                 Button {
                     setFocus(nil)
                 } label: {
-                    Image(systemName: "chevron.left")
+                    Image("ph-caret-left")
                         .font(.headline)
                         .frame(width: 30, height: 30)
                 }
@@ -216,7 +216,7 @@ struct BookshelfScreen: View {
                 Button {
                     renamingCategory = category
                 } label: {
-                    Image(systemName: "pencil")
+                    Image("ph-pencil-simple")
                         .font(.headline)
                         .frame(width: 30, height: 30)
                 }
@@ -227,7 +227,7 @@ struct BookshelfScreen: View {
                 Button {
                     requestAddBook()
                 } label: {
-                    Image(systemName: "plus")
+                    Image("ph-plus")
                         .font(.headline)
                         .frame(width: 30, height: 30)
                 }
@@ -242,7 +242,7 @@ struct BookshelfScreen: View {
                         showingPaywall = true
                     }
                 } label: {
-                    Image(systemName: "paintbrush.fill")
+                    Image("ph-paint-brush-fill")
                         .font(.headline)
                         .frame(width: 30, height: 30)
                 }
@@ -253,7 +253,7 @@ struct BookshelfScreen: View {
                 Button {
                     sharing = true
                 } label: {
-                    Image(systemName: "square.and.arrow.up")
+                    Image("ph-export")
                         .font(.headline)
                         .frame(width: 30, height: 30)
                 }
@@ -285,7 +285,7 @@ struct BookshelfScreen: View {
                     Button {
                         bookToDelete = book
                     } label: {
-                        Image(systemName: "trash")
+                        Image("ph-trash")
                             .font(.headline)
                             .foregroundStyle(.red)
                             .frame(width: 30, height: 30)
@@ -297,7 +297,7 @@ struct BookshelfScreen: View {
                     Button {
                         closePresentation(animated: true)
                     } label: {
-                        Image(systemName: "xmark")
+                        Image("ph-x")
                             .font(.headline)
                             .frame(width: 30, height: 30)
                     }
@@ -334,8 +334,8 @@ struct BookshelfScreen: View {
                         .lineLimit(1)
                 }
                 HStack(spacing: 12) {
-                    Label("Page \(book.currentPage) of \(book.totalPages)", systemImage: "book.closed")
-                    Label("\(streak)-day streak", systemImage: "flame.fill")
+                    Label("Page \(book.currentPage) of \(book.totalPages)", image: "ph-book")
+                    Label("\(streak)-day streak", image: "ph-flame-fill")
                         .foregroundStyle(streak > 0 ? Color.orange : Color.secondary)
                 }
                 .font(.footnote.weight(.medium))
@@ -351,7 +351,7 @@ struct BookshelfScreen: View {
                 Button {
                     readingBook = book
                 } label: {
-                    Label("Log reading", systemImage: "plus")
+                    Label("Log reading", image: "ph-plus")
                         .font(.headline)
                         .frame(maxWidth: .infinity)
                         .frame(minHeight: 36)
@@ -361,7 +361,7 @@ struct BookshelfScreen: View {
                 Button {
                     editingBook = book
                 } label: {
-                    Label("Edit", systemImage: "pencil")
+                    Label("Edit", image: "ph-pencil-simple")
                         .font(.headline)
                         .frame(maxWidth: .infinity)
                         .frame(minHeight: 36)
@@ -393,24 +393,24 @@ struct BookshelfScreen: View {
                                 Button {
                                     open(bookID: book.id)
                                 } label: {
-                                    Label("Open", systemImage: "book")
+                                    Label("Open", image: "ph-book-open")
                                 }
                                 Button(role: .destructive) {
                                     bookToDelete = books.first { $0.id == book.id }
                                 } label: {
-                                    Label("Delete book", systemImage: "trash")
+                                    Label("Delete book", image: "ph-trash")
                                 }
                             }
                     }
                     if shelfBooks.isEmpty {
-                        chip("Add a book", systemImage: "plus") { requestAddBook() }
+                        chip("Add a book", icon: "ph-plus") { requestAddBook() }
                     }
                 } else {
                     ForEach(Array(categories.prefix(BookcaseGeometry.compartmentCount).enumerated()), id: \.element.id) { index, category in
                         chip(category.name, colorHex: category.colorHex) { setFocus(index) }
                     }
                     if categories.count < BookcaseGeometry.compartmentCount {
-                        chip("Category", systemImage: "plus") { requestAddCategory() }
+                        chip("Category", icon: "ph-plus") { requestAddCategory() }
                     }
                 }
             }
@@ -419,7 +419,7 @@ struct BookshelfScreen: View {
         .scrollClipDisabled()
     }
 
-    private func chip(_ title: String, colorHex: String? = nil, systemImage: String? = nil, action: @escaping () -> Void) -> some View {
+    private func chip(_ title: String, colorHex: String? = nil, icon: String? = nil, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             HStack(spacing: 6) {
                 if let colorHex {
@@ -427,8 +427,8 @@ struct BookshelfScreen: View {
                         .fill(Color(hex: colorHex))
                         .frame(width: 10, height: 10)
                 }
-                if let systemImage {
-                    Image(systemName: systemImage)
+                if let icon {
+                    Image(icon)
                 }
                 Text(title)
                     .lineLimit(1)
