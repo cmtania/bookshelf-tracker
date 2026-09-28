@@ -100,23 +100,21 @@ struct CategoryDetailView: View {
         .sheet(item: $readingBook) { book in
             BookDetailView(book: book)
         }
-        .confirmationDialog(
-            "Delete “\(bookToDelete?.title ?? "this book")”?",
-            isPresented: Binding(get: { bookToDelete != nil }, set: { if !$0 { bookToDelete = nil } }),
-            titleVisibility: .visible,
-            presenting: bookToDelete
+        .confirmation(
+            item: $bookToDelete,
+            title: { "Delete “\($0.title)”?" },
+            message: BookDeletion.confirmationMessage,
+            confirmTitle: "Delete book"
         ) { book in
-            Button("Delete book", role: .destructive) {
-                Task { await BookDeletion.delete(book, in: context) }
-            }
-            Button("Cancel", role: .cancel) {}
-        } message: { _ in
-            Text(BookDeletion.confirmationMessage)
+            Task { await BookDeletion.delete(book, in: context) }
         }
-        .confirmationDialog("Delete “\(category.name)”?", isPresented: $confirmingDelete, titleVisibility: .visible) {
-            Button("Delete category", role: .destructive) { deleteCategory() }
-        } message: {
-            Text("Its compartment on the bookcase becomes free.")
+        .confirmation(
+            "Delete “\(category.name)”?",
+            isPresented: $confirmingDelete,
+            message: "Its compartment on the bookcase becomes free.",
+            confirmTitle: "Delete category"
+        ) {
+            deleteCategory()
         }
     }
 
