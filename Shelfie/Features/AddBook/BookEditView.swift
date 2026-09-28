@@ -92,13 +92,14 @@ struct BookEditView: View {
                         .disabled(!isValid)
                 }
             }
-            .confirmationDialog("Delete this book?", isPresented: $confirmingDelete, titleVisibility: .visible) {
-                Button("Delete book, notes and sessions", role: .destructive) {
-                    onDelete?()
-                    dismiss()
-                }
-            } message: {
-                Text("This can't be undone.")
+            .confirmation(
+                "Delete “\(book?.title ?? "this book")”?",
+                isPresented: $confirmingDelete,
+                message: BookDeletion.confirmationMessage,
+                confirmTitle: "Delete book"
+            ) {
+                onDelete?()
+                dismiss()
             }
             .onAppear(perform: load)
         }
