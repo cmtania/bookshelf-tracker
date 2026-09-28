@@ -15,15 +15,15 @@ struct AboutSheet: View {
         NavigationStack {
             List {
                 Section {
-                    linkRow("Help & FAQ", systemImage: "questionmark.circle", destination: AppLinks.support)
-                    linkRow("Privacy Policy", systemImage: "hand.raised", destination: AppLinks.privacy)
-                    linkRow("Terms of Service", systemImage: "doc.text", destination: AppLinks.termsOfService)
+                    linkRow("Help & FAQ", icon: "ph-question", destination: AppLinks.support)
+                    linkRow("Privacy Policy", icon: "ph-hand-palm", destination: AppLinks.privacy)
+                    linkRow("Terms of Service", icon: "ph-file-text", destination: AppLinks.termsOfService)
                 }
 
                 Section {
                     Link(destination: AppLinks.supportEmail) {
                         HStack(spacing: 12) {
-                            Image(systemName: "envelope")
+                            Image("ph-envelope-simple")
                                 .foregroundStyle(Color.accentColor)
                                 .frame(width: 24)
                             VStack(alignment: .leading, spacing: 2) {
@@ -82,16 +82,16 @@ struct AboutSheet: View {
         .accessibilityElement(children: .combine)
     }
 
-    private func linkRow(_ title: String, systemImage: String, destination: URL) -> some View {
+    private func linkRow(_ title: String, icon: String, destination: URL) -> some View {
         Link(destination: destination) {
             HStack(spacing: 12) {
-                Image(systemName: systemImage)
+                Image(icon)
                     .foregroundStyle(Color.accentColor)
                     .frame(width: 24)
                 Text(title)
                     .foregroundStyle(.primary)
                 Spacer()
-                Image(systemName: "arrow.up.right")
+                Image("ph-arrow-up-right")
                     .font(.footnote.weight(.semibold))
                     .foregroundStyle(.tertiary)
             }
