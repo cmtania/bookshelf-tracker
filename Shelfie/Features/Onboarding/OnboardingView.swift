@@ -57,6 +57,8 @@ struct OnboardingView: View {
                     .frame(minHeight: 36)
             }
             .buttonStyle(.glassProminent)
+            // As wide as the pages on iPad, not the whole screen.
+            .frame(maxWidth: 480)
             .padding(.horizontal, 24)
             .padding(.top, 16)
             .padding(.bottom, 12)
