@@ -47,7 +47,9 @@ Everything App Store Connect asks for, ready to paste, for version **1.0.0**. Fi
 | **Review screenshot** | The paywall with **Lifetime** selected | The paywall with **Monthly** selected |
 | **Review notes** | See section 8 | See section 8 |
 
-Also give the **subscription group** "Shelfie Pro" its own App Store Localization, with the Display Name `Shelfie Pro`.
+**The subscription group needs its own localization too**, or submitting fails with *"Your auto-renewable subscription must be submitted with its subscription group."* Open Monetization → Subscriptions → click the group **Shelfie Pro** itself (not the subscription inside it) → App Store Localization → **+** → English (U.S.): Subscription Group Display Name `Shelfie Pro`, App Name Display Options **Use App Name** → Save.
+
+If you hit that error anyway: remove Pro Monthly from the draft submission, check the group localization and that Pro Monthly is **Ready to Submit** (localization, price, review screenshot), then add both products again on the version page.
 
 **Before either product can be sold:** App Store Connect → **Business** → the **Paid Apps agreement** must be **Active**, with your banking and tax details filled in.
 
