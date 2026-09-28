@@ -131,7 +131,7 @@ struct OnboardingView: View {
 
     private var habitPage: some View {
         pageLayout {
-            Image(systemName: "flame.fill")
+            Image("ph-flame-fill")
                 .font(.system(size: 64))
                 .foregroundStyle(.orange)
                 .frame(width: 120, height: 120)
@@ -141,9 +141,9 @@ struct OnboardingView: View {
                 .font(.largeTitle.bold())
                 .multilineTextAlignment(.center)
             VStack(alignment: .leading, spacing: 18) {
-                habitRow("plus.circle.fill", "Log in seconds", "Tap a book, then Log reading. Type the page you’re on and you’re done.")
-                habitRow("flame.fill", "A streak for every book", "Read a little each day to keep each book’s streak, and your overall one, going.")
-                habitRow("calendar", "See your week", "The calendar shows a dot for every book you read, day by day.")
+                habitRow("ph-plus-circle-fill", "Log in seconds", "Tap a book, then Log reading. Type the page you’re on and you’re done.")
+                habitRow("ph-flame-fill", "A streak for every book", "Read a little each day to keep each book’s streak, and your overall one, going.")
+                habitRow("ph-calendar-dots", "See your week", "The calendar shows a dot for every book you read, day by day.")
             }
             .padding(.top, 4)
         }
@@ -151,7 +151,7 @@ struct OnboardingView: View {
 
     private var remindersPage: some View {
         pageLayout {
-            Image(systemName: "bell.badge.fill")
+            Image("ph-bell-ringing-fill")
                 .font(.system(size: 56))
                 .foregroundStyle(Color.accentColor)
                 .frame(width: 120, height: 120)
@@ -174,7 +174,7 @@ struct OnboardingView: View {
                 Button {
                     turnOnReminders()
                 } label: {
-                    Label("Turn on reminders", systemImage: "bell.fill")
+                    Label("Turn on reminders", image: "ph-bell-fill")
                         .font(.headline)
                         .frame(maxWidth: .infinity)
                         .frame(minHeight: 36)
@@ -184,7 +184,7 @@ struct OnboardingView: View {
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             case .allowed:
-                Label("Reminders are on", systemImage: "checkmark.circle.fill")
+                Label("Reminders are on", image: "ph-check-circle-fill")
                     .font(.headline)
                     .foregroundStyle(.green)
             case .denied:
@@ -215,7 +215,7 @@ struct OnboardingView: View {
 
     private func habitRow(_ symbol: String, _ title: String, _ detail: String) -> some View {
         HStack(alignment: .top, spacing: 14) {
-            Image(systemName: symbol)
+            Image(symbol)
                 .font(.title2)
                 .foregroundStyle(Color.accentColor)
                 .frame(width: 32)
