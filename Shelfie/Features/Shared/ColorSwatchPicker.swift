@@ -17,7 +17,7 @@ struct ColorSwatchPicker: View {
                         .frame(width: 36, height: 36)
                         .overlay {
                             if selection == hex {
-                                Image(systemName: "checkmark")
+                                Image("ph-check")
                                     .font(.caption.bold())
                                     .foregroundStyle(Palette.ink(on: hex))
                             }
