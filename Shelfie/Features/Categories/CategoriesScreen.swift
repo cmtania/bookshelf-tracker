@@ -49,12 +49,16 @@ struct CategoriesScreen: View {
                     }
                 }
             }
+            // The conditions wrap whole toolbar items (not their content), so an item is added or
+            // removed instead of starting out empty, which the toolbar may not redraw.
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    if !categories.isEmpty { EditButton() }
+                if !categories.isEmpty {
+                    ToolbarItem(placement: .topBarLeading) {
+                        EditButton()
+                    }
                 }
-                ToolbarItem(placement: .topBarTrailing) {
-                    if categories.count < UnlockGate.maxCategories {
+                if categories.count < UnlockGate.maxCategories {
+                    ToolbarItem(placement: .topBarTrailing) {
                         // A system symbol: Phosphor custom symbols don't render in toolbars.
                         Button("Add category", systemImage: "plus") {
                             requestAddCategory()
