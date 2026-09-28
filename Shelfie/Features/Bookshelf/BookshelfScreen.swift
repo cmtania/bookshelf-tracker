@@ -175,6 +175,11 @@ struct BookshelfScreen: View {
         .task {
             SoundEffects.preload(.bookPull)
         }
+        // Touch feedback: a tick when zooming into a compartment, a soft knock when a book comes out.
+        .sensoryFeedback(.selection, trigger: focused)
+        .sensoryFeedback(trigger: presentedID) { _, new in
+            new == nil ? nil : .impact(weight: .light)
+        }
         .sheet(item: $readingBook) { book in
             BookDetailView(book: book)
         }
@@ -261,7 +266,7 @@ struct BookshelfScreen: View {
                 Text(focusedCategory?.name ?? "My Bookshelf")
                     .font(.title2.bold())
                     .lineLimit(1)
-                Text(subtitle(snapshot))
+                subtitle(snapshot)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
@@ -435,14 +440,17 @@ struct BookshelfScreen: View {
         .padding(.horizontal, 16)
     }
 
-    private func subtitle(_ snapshot: ShelfSnapshot) -> String {
+    private func subtitle(_ snapshot: ShelfSnapshot) -> Text {
         if let focused {
             let count = snapshot.compartments[focused].books.count
-            return count == 0 ? "No books yet" : "\(count) \(count == 1 ? "book" : "books") · tap a spine to open"
+            return Text(count == 0 ? "No books yet" : "\(count) \(count == 1 ? "book" : "books") · tap a spine to open")
         }
         let streak = StreakCalculator().currentStreak(books.flatMap(\.sessionDates))
         let count = "\(books.count) \(books.count == 1 ? "book" : "books")"
-        return streak > 0 ? "\(count) · 🔥 \(streak)-day streak" : "\(count) · tap a shelf to look closer"
+        guard streak > 0 else { return Text("\(count) · tap a shelf to look closer") }
+        // The Phosphor flame in orange, inline with the text.
+        let flame = Text(Image("ph-flame-fill")).foregroundStyle(.orange)
+        return Text("\(count) · \(flame) \(streak)-day streak")
     }
 
     private func chipRow(_ snapshot: ShelfSnapshot) -> some View {
