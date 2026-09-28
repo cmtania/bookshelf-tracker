@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- ph-flame-fill: Phosphor Icons (MIT, phosphoricons.com), converted to a custom symbol for Shelfie. -->
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="3300" height="2200">
+  <g id="Notes">
+    <rect id="artboard" style="fill:white;opacity:1" x="0" y="0" width="3300" height="2200"/>
+    <text id="template-version" style="stroke:none;fill:black;font-family:sans-serif;font-size:13;" transform="matrix(1 0 0 1 3036 1933)">Template v.3.0</text>
+    <text id="descriptive-name" style="stroke:none;fill:black;font-family:sans-serif;font-size:13;" transform="matrix(1 0 0 1 263 1933)">ph-flame-fill</text>
+  </g>
+  <g id="Guides">
+    <line id="Baseline-S" style="fill:none;stroke:#27AAE1;opacity:1;stroke-width:0.5;" x1="263" y1="696" x2="3036" y2="696"/>
+    <line id="Capline-S" style="fill:none;stroke:#27AAE1;opacity:1;stroke-width:0.5;" x1="263" y1="625.541" x2="3036" y2="625.541"/>
+    <line id="Baseline-M" style="fill:none;stroke:#27AAE1;opacity:1;stroke-width:0.5;" x1="263" y1="1126" x2="3036" y2="1126"/>
+    <line id="Capline-M" style="fill:none;stroke:#27AAE1;opacity:1;stroke-width:0.5;" x1="263" y1="1055.54" x2="3036" y2="1055.54"/>
+    <line id="Baseline-L" style="fill:none;stroke:#27AAE1;opacity:1;stroke-width:0.5;" x1="263" y1="1556" x2="3036" y2="1556"/>
+    <line id="Capline-L" style="fill:none;stroke:#27AAE1;opacity:1;stroke-width:0.5;" x1="263" y1="1485.54" x2="3036" y2="1485.54"/>
+    <line id="left-margin-Regular-M" style="fill:none;stroke:#27AAE1;opacity:1;stroke-width:0.5;" x1="1391.3" y1="1030.79" x2="1391.3" y2="1150.12"/>
+    <line id="right-margin-Regular-M" style="fill:none;stroke:#27AAE1;opacity:1;stroke-width:0.5;" x1="1484.74" y1="1030.79" x2="1484.74" y2="1150.12"/>
+  </g>
+  <g id="Symbols">
+    <g id="Regular-M">
+      <path d="M 1454.733 1062.84 a 80.756 80.756 0 0 0 -15.21 -12.534 2.92 2.92 0 0 0 -3.008 0 A 80.756 80.756 0 0 0 1421.307 1062.84 C 1411.225 1073.425 1405.9 1085.102 1405.9 1096.61 a 32.12 32.12 0 0 0 64.24 0 C 1470.14 1085.102 1464.815 1073.425 1454.733 1062.84 Z M 1426.34 1111.21 c 0 -10.1 8.223 -17.257 11.68 -19.819 3.46 2.555 11.68 9.72 11.68 19.819 a 11.68 11.68 0 0 1 -23.36 0 Z"/>
+    </g>
+  </g>
+</svg>

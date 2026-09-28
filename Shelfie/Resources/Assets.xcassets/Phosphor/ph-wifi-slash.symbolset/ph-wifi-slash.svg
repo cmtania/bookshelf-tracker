@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- ph-wifi-slash: Phosphor Icons (MIT, phosphoricons.com), converted to a custom symbol for Shelfie. -->
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="3300" height="2200">
+  <g id="Notes">
+    <rect id="artboard" style="fill:white;opacity:1" x="0" y="0" width="3300" height="2200"/>
+    <text id="template-version" style="stroke:none;fill:black;font-family:sans-serif;font-size:13;" transform="matrix(1 0 0 1 3036 1933)">Template v.3.0</text>
+    <text id="descriptive-name" style="stroke:none;fill:black;font-family:sans-serif;font-size:13;" transform="matrix(1 0 0 1 263 1933)">ph-wifi-slash</text>
+  </g>
+  <g id="Guides">
+    <line id="Baseline-S" style="fill:none;stroke:#27AAE1;opacity:1;stroke-width:0.5;" x1="263" y1="696" x2="3036" y2="696"/>
+    <line id="Capline-S" style="fill:none;stroke:#27AAE1;opacity:1;stroke-width:0.5;" x1="263" y1="625.541" x2="3036" y2="625.541"/>
+    <line id="Baseline-M" style="fill:none;stroke:#27AAE1;opacity:1;stroke-width:0.5;" x1="263" y1="1126" x2="3036" y2="1126"/>
+    <line id="Capline-M" style="fill:none;stroke:#27AAE1;opacity:1;stroke-width:0.5;" x1="263" y1="1055.54" x2="3036" y2="1055.54"/>
+    <line id="Baseline-L" style="fill:none;stroke:#27AAE1;opacity:1;stroke-width:0.5;" x1="263" y1="1556" x2="3036" y2="1556"/>
+    <line id="Capline-L" style="fill:none;stroke:#27AAE1;opacity:1;stroke-width:0.5;" x1="263" y1="1485.54" x2="3036" y2="1485.54"/>
+    <line id="left-margin-Regular-M" style="fill:none;stroke:#27AAE1;opacity:1;stroke-width:0.5;" x1="1391.3" y1="1030.79" x2="1391.3" y2="1150.12"/>
+    <line id="right-margin-Regular-M" style="fill:none;stroke:#27AAE1;opacity:1;stroke-width:0.5;" x1="1484.74" y1="1030.79" x2="1484.74" y2="1150.12"/>
+  </g>
+  <g id="Symbols">
+    <g id="Regular-M">
+      <path d="M 1469.381 1120.927 a 2.92 2.92 0 1 1 -4.322 3.927 l -18.98 -20.86 a 21.9 21.9 0 0 0 -20.955 2.643 2.92 2.92 0 1 1 -3.438 -4.719 A 27.532 27.532 0 0 1 1438.02 1096.61 c 0.467 0 0.931 0 1.394 0.036 L 1429.588 1085.839 A 39.42 39.42 0 0 0 1413.565 1093.438 2.92 2.92 0 0 1 1409.451 1092.96 2.92 2.92 0 0 1 1409.915 1088.861 a 45.359 45.359 0 0 1 15.224 -7.906 L 1416.62 1071.571 a 56.732 56.732 0 0 0 -14.706 8.76 A 2.92 2.92 0 0 1 1398.206 1075.805 62.733 62.733 0 0 1 1412.47 1066.994 L 1406.659 1060.614 A 2.92 2.92 0 1 1 1410.981 1056.687 Z M 1438.02 1114.13 a 4.38 4.38 0 1 0 4.38 4.38 A 4.38 4.38 0 0 0 1438.02 1114.13 Z M 1477.834 1075.805 A 62.89 62.89 0 0 0 1429.99 1062.081 a 2.92 2.92 0 1 0 0.73 5.793 A 57.79 57.79 0 0 1 1438.02 1067.41 a 57.031 57.031 0 0 1 36.106 12.91 A 2.92 2.92 0 0 0 1477.834 1075.805 Z M 1462.475 1093.438 a 2.92 2.92 0 0 0 4.103 -0.474 2.92 2.92 0 0 0 -0.474 -4.103 45.351 45.351 0 0 0 -18.881 -8.833 A 2.92 2.92 0 1 0 1446.05 1085.748 39.464 39.464 0 0 1 1462.475 1093.438 Z"/>
+    </g>
+  </g>
+</svg>

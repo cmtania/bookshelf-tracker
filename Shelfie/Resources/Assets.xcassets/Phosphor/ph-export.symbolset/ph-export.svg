@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- ph-export: Phosphor Icons (MIT, phosphoricons.com), converted to a custom symbol for Shelfie. -->
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="3300" height="2200">
+  <g id="Notes">
+    <rect id="artboard" style="fill:white;opacity:1" x="0" y="0" width="3300" height="2200"/>
+    <text id="template-version" style="stroke:none;fill:black;font-family:sans-serif;font-size:13;" transform="matrix(1 0 0 1 3036 1933)">Template v.3.0</text>
+    <text id="descriptive-name" style="stroke:none;fill:black;font-family:sans-serif;font-size:13;" transform="matrix(1 0 0 1 263 1933)">ph-export</text>
+  </g>
+  <g id="Guides">
+    <line id="Baseline-S" style="fill:none;stroke:#27AAE1;opacity:1;stroke-width:0.5;" x1="263" y1="696" x2="3036" y2="696"/>
+    <line id="Capline-S" style="fill:none;stroke:#27AAE1;opacity:1;stroke-width:0.5;" x1="263" y1="625.541" x2="3036" y2="625.541"/>
+    <line id="Baseline-M" style="fill:none;stroke:#27AAE1;opacity:1;stroke-width:0.5;" x1="263" y1="1126" x2="3036" y2="1126"/>
+    <line id="Capline-M" style="fill:none;stroke:#27AAE1;opacity:1;stroke-width:0.5;" x1="263" y1="1055.54" x2="3036" y2="1055.54"/>
+    <line id="Baseline-L" style="fill:none;stroke:#27AAE1;opacity:1;stroke-width:0.5;" x1="263" y1="1556" x2="3036" y2="1556"/>
+    <line id="Capline-L" style="fill:none;stroke:#27AAE1;opacity:1;stroke-width:0.5;" x1="263" y1="1485.54" x2="3036" y2="1485.54"/>
+    <line id="left-margin-Regular-M" style="fill:none;stroke:#27AAE1;opacity:1;stroke-width:0.5;" x1="1391.3" y1="1030.79" x2="1391.3" y2="1150.12"/>
+    <line id="right-margin-Regular-M" style="fill:none;stroke:#27AAE1;opacity:1;stroke-width:0.5;" x1="1484.74" y1="1030.79" x2="1484.74" y2="1150.12"/>
+  </g>
+  <g id="Symbols">
+    <g id="Regular-M">
+      <path d="M 1470.14 1084.93 v 35.04 a 5.84 5.84 0 0 1 -5.84 5.84 H 1411.74 a 5.84 5.84 0 0 1 -5.84 -5.84 V 1084.93 A 5.84 5.84 0 0 1 1411.74 1079.09 H 1420.5 a 2.92 2.92 0 0 1 0 5.84 H 1411.74 v 35.04 H 1464.3 V 1084.93 H 1455.54 a 2.92 2.92 0 0 1 0 -5.84 h 8.76 A 5.84 5.84 0 0 1 1470.14 1084.93 Z M 1425.486 1069.476 1435.1 1059.858 V 1093.69 a 2.92 2.92 0 0 0 5.84 0 V 1059.858 l 9.614 9.618 a 2.92 2.92 0 0 0 4.132 -4.132 l -14.6 -14.6 a 2.92 2.92 0 0 0 -4.132 0 l -14.6 14.6 A 2.92 2.92 0 0 0 1425.486 1069.476 Z"/>
+    </g>
+  </g>
+</svg>
