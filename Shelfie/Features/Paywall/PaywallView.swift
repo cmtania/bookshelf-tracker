@@ -102,13 +102,12 @@ struct PaywallView: View {
                 .background(.bar)
             }
             .toolbar {
+                // The system close button (X in a glass circle). A custom image in a toolbar
+                // didn't render, and the paywall must always be closable.
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button {
+                    Button(role: .close) {
                         dismiss()
-                    } label: {
-                        Image("ph-x")
                     }
-                    .accessibilityLabel("Close")
                 }
             }
             .alert(
