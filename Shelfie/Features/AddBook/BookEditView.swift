@@ -55,7 +55,7 @@ struct BookEditView: View {
                     }
                     Picker("Status", selection: $status) {
                         ForEach(ReadingStatus.allCases) { status in
-                            Label(status.label, systemImage: status.symbol).tag(status)
+                            Label(status.label, image: status.symbol).tag(status)
                         }
                     }
                 }
