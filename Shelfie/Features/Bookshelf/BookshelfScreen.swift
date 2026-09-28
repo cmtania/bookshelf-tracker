@@ -10,6 +10,7 @@ struct BookshelfScreen: View {
     @Environment(\.modelContext) private var context
     @Environment(UnlockGate.self) private var gate
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.horizontalSizeClass) private var sizeClass
 
     @Query(sort: \BookCategory.sortIndex) private var categories: [BookCategory]
     @Query(sort: [SortDescriptor(\Book.shelfOrder), SortDescriptor(\Book.createdAt)]) private var books: [Book]
@@ -56,6 +57,29 @@ struct BookshelfScreen: View {
     private var focusedCategory: BookCategory? {
         guard let focused, focused < categories.count else { return nil }
         return categories[focused]
+    }
+
+    /// On iPad (and wide windows) room colors open in a side panel instead of a half-height sheet.
+    private var usesSidePanel: Bool {
+        sizeClass == .regular
+    }
+
+    private var roomPreview: RoomScene.RoomPreview? {
+        guard editingTheme else { return nil }
+        return usesSidePanel ? .wholeView : .topHalf
+    }
+
+    private var themeEditor: some View {
+        NavigationStack {
+            RoomThemeEditor()
+                .navigationTitle("Room colors")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("Done") { editingTheme = false }
+                    }
+                }
+        }
     }
 
     private var presentedBook: Book? {
@@ -126,9 +150,12 @@ struct BookshelfScreen: View {
             .environment(\.colorScheme, overlayScheme)
             .animation(.snappy, value: editingTheme)
         }
-        .onChange(of: editingTheme) { _, editing in
-            // Pull back to the whole room while the colors sheet is up, and return afterwards.
-            scene.setRoomPreview(editing)
+        .onChange(of: editingTheme) { _, _ in
+            // Pull back to the whole room while room colors are open, and return afterwards.
+            scene.setRoomPreview(roomPreview)
+        }
+        .onChange(of: usesSidePanel) { _, _ in
+            scene.setRoomPreview(roomPreview)
         }
         .onChange(of: theme, initial: true) { _, newTheme in
             scene.setTheme(newTheme)
@@ -163,23 +190,26 @@ struct BookshelfScreen: View {
         .sheet(isPresented: $showingPaywall) {
             PaywallView()
         }
-        .sheet(isPresented: $editingTheme) {
-            NavigationStack {
-                RoomThemeEditor()
-                    .navigationTitle("Room colors")
-                    .navigationBarTitleDisplayMode(.inline)
-                    .toolbar {
-                        ToolbarItem(placement: .confirmationAction) {
-                            Button("Done") { editingTheme = false }
-                        }
-                    }
-            }
-            // Fixed at half the screen: the camera frames the whole room in the top half,
-            // so every color change shows live above the sheet.
-            .presentationDetents([.fraction(0.5)])
-            .presentationDragIndicator(.hidden)
-            .presentationBackgroundInteraction(.enabled(upThrough: .fraction(0.5)))
-            .presentationContentInteraction(.scrolls)
+        // iPhone: a sheet fixed at half the screen; the camera frames the whole room in the top
+        // half, so every color change shows live above the sheet.
+        // (A size-class change while editing moves the editor instead of closing it.)
+        .sheet(isPresented: Binding(
+            get: { editingTheme && !usesSidePanel },
+            set: { if !$0 && !usesSidePanel { editingTheme = false } }
+        )) {
+            themeEditor
+                .presentationDetents([.fraction(0.5)])
+                .presentationDragIndicator(.hidden)
+                .presentationBackgroundInteraction(.enabled(upThrough: .fraction(0.5)))
+                .presentationContentInteraction(.scrolls)
+        }
+        // iPad: a panel beside the room, which stays in full view.
+        .inspector(isPresented: Binding(
+            get: { editingTheme && usesSidePanel },
+            set: { if !$0 && usesSidePanel { editingTheme = false } }
+        )) {
+            themeEditor
+                .inspectorColumnWidth(min: 320, ideal: 360, max: 420)
         }
         .sheet(isPresented: $sharing) {
             ShareShelfSheet(card: shareCard(shelf))
@@ -400,6 +430,8 @@ struct BookshelfScreen: View {
                 .buttonStyle(.glass)
             }
         }
+        // Phone width on iPad too, so the card and buttons don't stretch across the screen.
+        .frame(maxWidth: 520)
         .padding(.horizontal, 16)
     }
 
