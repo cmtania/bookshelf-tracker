@@ -1,9 +1,13 @@
 import SwiftUI
 
 /// Pick the bookcase, wall and floor looks. A dropdown chooses the part; below it are that part's
-/// Classic and Premium swatches. Designed to fit a half-height sheet over the Bookshelf tab, where the
-/// camera pulls back to show the whole room above it. Also pushed from Settings. Part of Shelfie Pro.
+/// Classic and Premium swatches. Part of Shelfie Pro.
+/// - iPhone: a half-height sheet under the room, so the options are single rows that scroll sideways.
+/// - iPad: a tall side panel, so the options wrap into a grid you scroll down (`wrapsOptions`).
 struct RoomThemeEditor: View {
+    /// Lay the designs and swatches out as a wrapping grid instead of sideways-scrolling rows.
+    var wrapsOptions = false
+
     enum Part: String, CaseIterable, Identifiable {
         case design = "Design"
         case bookcase = "Bookcase color"
@@ -86,9 +90,9 @@ struct RoomThemeEditor: View {
                     designPicker
                 } else {
                     rowLabel("Classic")
-                    PresetSwatchRow(presets: presets.filter { !$0.isPremium }, kind: kind, selection: selection)
+                    PresetSwatchRow(presets: presets.filter { !$0.isPremium }, kind: kind, selection: selection, wraps: wrapsOptions)
                     rowLabel("Premium", icon: "ph-sparkle")
-                    PresetSwatchRow(presets: presets.filter(\.isPremium), kind: kind, selection: selection)
+                    PresetSwatchRow(presets: presets.filter(\.isPremium), kind: kind, selection: selection, wraps: wrapsOptions)
                 }
 
                 Button("Reset to default") {
@@ -114,46 +118,55 @@ struct RoomThemeEditor: View {
     }
 
     /// A card per bookcase design, each drawn with a sample shelf in the current colors.
+    @ViewBuilder
     private var designPicker: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 12) {
-                ForEach(BookcaseStyle.allCases) { style in
-                    let isSelected = style.rawValue == styleID
-                    let preview = RoomTheme(shelfID: shelfID, wallID: wallID, floorID: floorID, styleID: style.rawValue)
-                    let layout = style.layout
-                    Button {
-                        withAnimation(.snappy) { styleID = style.rawValue }
-                    } label: {
-                        VStack(spacing: 8) {
-                            BookcaseDrawing(snapshot: .sample, theme: preview, showsLabels: false)
-                                .aspectRatio(CGFloat(layout.width / layout.height), contentMode: .fit)
-                                .frame(width: 84, height: 104)
-                                .padding(8)
-                                .background(RoundedRectangle(cornerRadius: 14).fill(Color(hex: preview.wall.hex)))
-                                .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(isSelected ? Color.accentColor : Color.primary.opacity(0.1), lineWidth: isSelected ? 2.5 : 1))
-                            HStack(spacing: 3) {
-                                if style.isPremium {
-                                    Image("ph-sparkle")
-                                        .font(.caption2)
-                                        .foregroundStyle(Color.accentColor)
-                                }
-                                Text(style.name)
-                                    .font(.caption.weight(isSelected ? .semibold : .regular))
-                                    .foregroundStyle(isSelected ? .primary : .secondary)
-                                    .lineLimit(1)
-                            }
-                        }
-                        .frame(width: 108)
-                        .contentShape(Rectangle())
+        if wrapsOptions {
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 108), spacing: 12)], spacing: 16) {
+                ForEach(BookcaseStyle.allCases) { designCard($0) }
+            }
+        } else {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 12) {
+                    ForEach(BookcaseStyle.allCases) { designCard($0) }
+                }
+                .padding(.vertical, 2)
+            }
+            .scrollClipDisabled()
+        }
+    }
+
+    private func designCard(_ style: BookcaseStyle) -> some View {
+        let isSelected = style.rawValue == styleID
+        let preview = RoomTheme(shelfID: shelfID, wallID: wallID, floorID: floorID, styleID: style.rawValue)
+        let layout = style.layout
+        return Button {
+            withAnimation(.snappy) { styleID = style.rawValue }
+        } label: {
+            VStack(spacing: 8) {
+                BookcaseDrawing(snapshot: .sample, theme: preview, showsLabels: false)
+                    .aspectRatio(CGFloat(layout.width / layout.height), contentMode: .fit)
+                    .frame(width: 84, height: 104)
+                    .padding(8)
+                    .background(RoundedRectangle(cornerRadius: 14).fill(Color(hex: preview.wall.hex)))
+                    .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(isSelected ? Color.accentColor : Color.primary.opacity(0.1), lineWidth: isSelected ? 2.5 : 1))
+                HStack(spacing: 3) {
+                    if style.isPremium {
+                        Image("ph-sparkle")
+                            .font(.caption2)
+                            .foregroundStyle(Color.accentColor)
                     }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel(style.name)
-                    .accessibilityAddTraits(isSelected ? .isSelected : [])
+                    Text(style.name)
+                        .font(.caption.weight(isSelected ? .semibold : .regular))
+                        .foregroundStyle(isSelected ? .primary : .secondary)
+                        .lineLimit(1)
                 }
             }
-            .padding(.vertical, 2)
+            .frame(width: 108)
+            .contentShape(Rectangle())
         }
-        .scrollClipDisabled()
+        .buttonStyle(.plain)
+        .accessibilityLabel(style.name)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 
     /// Dropdown for which part of the room to color.
@@ -202,44 +215,56 @@ struct PresetSwatchRow: View {
     let presets: [RoomTheme.Preset]
     let kind: Swatch.Kind
     @Binding var selection: String
+    /// A grid that wraps onto new lines (iPad side panel) instead of one sideways-scrolling row.
+    var wraps = false
 
     var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 14) {
-                ForEach(presets) { preset in
-                    let isSelected = preset.id == selection
-                    Button {
-                        withAnimation(.snappy) { selection = preset.id }
-                    } label: {
-                        VStack(spacing: 6) {
-                            Swatch(preset: preset, kind: kind)
-                                .frame(width: 44, height: 44)
-                                .overlay {
-                                    if isSelected {
-                                        Image("ph-check")
-                                            .font(.caption.bold())
-                                            .foregroundStyle(Palette.ink(on: preset.hex))
-                                            .shadow(color: .black.opacity(0.25), radius: 1)
-                                    }
-                                }
-                                .padding(3)
-                                .overlay(Circle().strokeBorder(isSelected ? Color.accentColor : .clear, lineWidth: 2.5))
-                            Text(preset.name)
-                                .font(.caption2)
-                                .foregroundStyle(isSelected ? .primary : .secondary)
-                                .lineLimit(1)
-                        }
-                        .frame(minWidth: 60)
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel(preset.name)
-                    .accessibilityAddTraits(isSelected ? .isSelected : [])
-                }
+        if wraps {
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 72), spacing: 12)], alignment: .leading, spacing: 16) {
+                ForEach(presets) { swatchButton($0) }
             }
-            .padding(.vertical, 2)
+        } else {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 14) {
+                    ForEach(presets) { swatchButton($0) }
+                }
+                .padding(.vertical, 2)
+            }
+            .scrollClipDisabled()
         }
-        .scrollClipDisabled()
+    }
+
+    private func swatchButton(_ preset: RoomTheme.Preset) -> some View {
+        let isSelected = preset.id == selection
+        return Button {
+            withAnimation(.snappy) { selection = preset.id }
+        } label: {
+            VStack(spacing: 6) {
+                Swatch(preset: preset, kind: kind)
+                    .frame(width: 44, height: 44)
+                    .overlay {
+                        if isSelected {
+                            Image("ph-check")
+                                .font(.caption.bold())
+                                .foregroundStyle(Palette.ink(on: preset.hex))
+                                .shadow(color: .black.opacity(0.25), radius: 1)
+                        }
+                    }
+                    .padding(3)
+                    .overlay(Circle().strokeBorder(isSelected ? Color.accentColor : .clear, lineWidth: 2.5))
+                Text(preset.name)
+                    .font(.caption2)
+                    .foregroundStyle(isSelected ? .primary : .secondary)
+                    // In the grid, long names ("Walnut herringbone") get a second line.
+                    .lineLimit(wraps ? 2 : 1)
+                    .multilineTextAlignment(.center)
+            }
+            .frame(minWidth: 60, maxWidth: wraps ? .infinity : nil, alignment: .top)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(preset.name)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }
 
