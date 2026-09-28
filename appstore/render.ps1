@@ -14,18 +14,18 @@ if (-not $edge) { throw 'Microsoft Edge not found.' }
 
 # Order = order in the App Store. The first 3 are what most people see in search results.
 $slides = @(
-  @{ out = '01-pull-a-book';  theme = 'orange'; shot = 'Simulator Screenshot - iPhone 17 Pro Max - 2026-09-27 at 15.37.16.png'
-     title = 'Pull a book off your 3D shelf';              sub = 'Tap a spine and it turns to face you. Log reading right there.' },
-  @{ out = '02-room-colors';  theme = 'cream';  shot = 'Simulator Screenshot - iPhone 17 Pro Max - 2026-09-27 at 15.36.02.png'
-     title = 'Make the room yours';                        sub = 'Bookcase, wall and floor colors, including premium finishes.' },
-  @{ out = '03-categories';   theme = 'orange'; shot = 'Simulator Screenshot - iPhone 17 Pro Max - 2026-09-27 at 15.37.33.png'
-     title = 'Every shelf, with the numbers that matter'; sub = 'Books, pages read and a streak for each category.' },
-  @{ out = '04-streaks';      theme = 'cream';  shot = 'Simulator Screenshot - iPhone 17 Pro Max - 2026-09-27 at 15.38.50.png'
-     title = 'A streak for every book';                    sub = 'Log pages in seconds and see your week at a glance.' },
-  @{ out = '05-welcome';      theme = 'orange'; shot = 'Simulator Screenshot - iPhone 17 Pro Max - 2026-09-27 at 15.38.43.png'
-     title = 'Set up in under a minute';                   sub = 'No account, no sign-in. Your library stays on your iPhone.' },
-  @{ out = '06-pro';          theme = 'dark';   shot = 'Simulator Screenshot - iPhone 17 Pro Max - 2026-09-27 at 15.34.36.png'
-     title = 'Free to start. Pay once for Pro.';           sub = 'Unlimited books and every shelf, yours forever.' }
+  @{ out = '01-pull-a-book';  theme = 'orange'; shot = 'Simulator Screenshot - iPhone 17 Pro Max - 2026-09-28 at 19.59.48.png'
+     title = 'Pull a book off your 3D shelf';             sub = 'Tap a spine and it turns to face you. Log reading right there.' },
+  @{ out = '02-room-colors';  theme = 'cream';  shot = 'Simulator Screenshot - iPhone 17 Pro Max - 2026-09-28 at 19.58.59.png'
+     title = 'Make the room yours';                       sub = 'Bookcase designs and colors for the case, walls and floor.' },
+  @{ out = '03-share';        theme = 'orange'; shot = 'Simulator Screenshot - iPhone 17 Pro Max - 2026-09-28 at 20.00.02.png'
+     title = 'Share your shelf';                          sub = 'Turn your bookcase into a clean picture for anywhere.' },
+  @{ out = '04-shelves';      theme = 'cream';  shot = 'Simulator Screenshot - iPhone 17 Pro Max - 2026-09-28 at 19.57.07.png'
+     title = 'One compartment per category';              sub = 'Name your shelves, then fill them book by book.' },
+  @{ out = '05-welcome';      theme = 'orange'; shot = 'Simulator Screenshot - iPhone 17 Pro Max - 2026-09-28 at 19.56.53.png'
+     title = 'Set up in under a minute';                  sub = 'No account, no sign-in. Your library stays on your device.' },
+  @{ out = '06-pro';          theme = 'dark';   shot = 'Simulator Screenshot - iPhone 17 Pro Max - 2026-09-28 at 19.57.28.png'
+     title = 'Free to start. Pay once for Pro.';          sub = 'Unlimited books and every shelf, yours forever.' }
 )
 
 $template = (Join-Path $here 'template.html') -replace '\\', '/'
