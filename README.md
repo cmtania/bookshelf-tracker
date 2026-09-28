@@ -5,7 +5,9 @@ A reading tracker for iPhone. Your books sit in a real 3D bookcase in a room you
 ## Features
 
 - **Bookshelf (3D, RealityKit):**
-  - Tap a compartment to zoom in. Tap a spine and the book slides out, flies up and turns to show its cover, with **Log reading** and **Edit** below. Drag to turn it; tap anywhere else to put it back.
+  - Tap a compartment to zoom in. Tap a spine and the book slides out with a soft sound, flies up and turns to show its cover, with **Log reading** and **Edit** below. Drag to turn it; tap anywhere else to put it back.
+  - Pinch with two fingers to zoom in or out (toward your fingers, up to 3×), and drag with one finger to look around while zoomed in.
+  - The sound follows the silent switch, doesn't stop your music, and can be turned off in Settings > Sound effects. It's synthesised by `design/sounds/make-book-sound.mjs` (no third-party audio).
   - Reading books stick out with a ribbon, and want-to-read books lie flat.
   - When zoomed out, the top bar has room colors and share. When zoomed in, it has rename and add book.
 - **Books:** title, author, page count, category, status (Want to read / Reading / Finished), spine color, daily page goal, notes and reading sessions.
