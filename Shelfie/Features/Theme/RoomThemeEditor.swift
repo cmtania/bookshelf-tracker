@@ -67,12 +67,18 @@ struct RoomThemeEditor: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
                 HStack(spacing: 12) {
+                    // The part name always keeps its full width on one line; a long colour name
+                    // ("Midnight Blue") shrinks a little, then truncates, instead of squeezing it.
                     partMenu
+                        .layoutPriority(1)
                     Spacer(minLength: 8)
                     Text(selectedName)
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                        .truncationMode(.tail)
+                        .multilineTextAlignment(.trailing)
                         .contentTransition(.opacity)
                 }
 
@@ -165,10 +171,13 @@ struct RoomThemeEditor: View {
                 Text(part.rawValue)
                     .font(.headline)
                     .foregroundStyle(.primary)
+                    .lineLimit(1)
                 Image("ph-caret-up-down")
                     .font(.caption.weight(.bold))
                     .foregroundStyle(.secondary)
             }
+            // Its natural width, never wrapped ("Wa / lls").
+            .fixedSize()
             .padding(.horizontal, 16)
             .frame(minHeight: 44)
             .glassEffect(.regular.interactive(), in: .capsule)
