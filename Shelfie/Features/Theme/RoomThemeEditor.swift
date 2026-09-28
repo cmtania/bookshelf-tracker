@@ -14,10 +14,10 @@ struct RoomThemeEditor: View {
 
         var symbol: String {
             switch self {
-            case .design: "square.split.2x2.fill"
-            case .bookcase: "books.vertical.fill"
-            case .walls: "square.fill"
-            case .floor: "square.grid.3x3.fill"
+            case .design: "ph-grid-four-fill"
+            case .bookcase: "ph-books-fill"
+            case .walls: "ph-wall-fill"
+            case .floor: "ph-grid-nine-fill"
             }
         }
     }
@@ -81,7 +81,7 @@ struct RoomThemeEditor: View {
                 } else {
                     rowLabel("Classic")
                     PresetSwatchRow(presets: presets.filter { !$0.isPremium }, kind: kind, selection: selection)
-                    rowLabel("Premium", systemImage: "sparkles")
+                    rowLabel("Premium", icon: "ph-sparkle")
                     PresetSwatchRow(presets: presets.filter(\.isPremium), kind: kind, selection: selection)
                 }
 
@@ -127,7 +127,7 @@ struct RoomThemeEditor: View {
                                 .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(isSelected ? Color.accentColor : Color.primary.opacity(0.1), lineWidth: isSelected ? 2.5 : 1))
                             HStack(spacing: 3) {
                                 if style.isPremium {
-                                    Image(systemName: "sparkles")
+                                    Image("ph-sparkle")
                                         .font(.caption2)
                                         .foregroundStyle(Color.accentColor)
                                 }
@@ -155,17 +155,17 @@ struct RoomThemeEditor: View {
         Menu {
             Picker("Part of the room", selection: $part) {
                 ForEach(Part.allCases) { item in
-                    Label(item.rawValue, systemImage: item.symbol).tag(item)
+                    Label(item.rawValue, image: item.symbol).tag(item)
                 }
             }
         } label: {
             HStack(spacing: 8) {
-                Image(systemName: part.symbol)
+                Image(part.symbol)
                     .foregroundStyle(Color.accentColor)
                 Text(part.rawValue)
                     .font(.headline)
                     .foregroundStyle(.primary)
-                Image(systemName: "chevron.up.chevron.down")
+                Image("ph-caret-up-down")
                     .font(.caption.weight(.bold))
                     .foregroundStyle(.secondary)
             }
@@ -176,10 +176,10 @@ struct RoomThemeEditor: View {
         .accessibilityLabel("Part of the room: \(part.rawValue)")
     }
 
-    private func rowLabel(_ text: String, systemImage: String? = nil) -> some View {
+    private func rowLabel(_ text: String, icon: String? = nil) -> some View {
         HStack(spacing: 4) {
-            if let systemImage {
-                Image(systemName: systemImage)
+            if let icon {
+                Image(icon)
             }
             Text(text)
         }
@@ -207,7 +207,7 @@ struct PresetSwatchRow: View {
                                 .frame(width: 44, height: 44)
                                 .overlay {
                                     if isSelected {
-                                        Image(systemName: "checkmark")
+                                        Image("ph-check")
                                             .font(.caption.bold())
                                             .foregroundStyle(Palette.ink(on: preset.hex))
                                             .shadow(color: .black.opacity(0.25), radius: 1)
